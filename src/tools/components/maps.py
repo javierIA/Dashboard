@@ -4,11 +4,14 @@ import plotly.graph_objects as go
 import json
 import utils
 import pandas as pd
+from pathlib import Path
 
 
 def get_map(df):
     data = df
-    with open("src/assets/chihuahua.json", encoding='utf8') as f:
+    statejson = Path(__file__).parent.parent.parent.joinpath(
+        'assets', 'chihuahua.json')
+    with open(statejson, encoding='utf8') as f:
         provinces_map = json.load(f)
     px.set_mapbox_access_token(
         "eyJ1IjoiamF2aWVmbG84OCIsImEiOiJjbGNwdmk0bmQ0bHBsM3FwNDF5Z2hxdHo3In0")

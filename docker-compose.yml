@@ -1,0 +1,11 @@
+version: "3"
+services:
+  myapp:
+    image: dashboardi2e
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/wd/src
+    environment:
+      - PORT=80
+    command: gunicorn --workers=5 --threads=1 -b 0.0.0.0:80 main:server

@@ -9,28 +9,29 @@ import plotly.graph_objects as go
 from tools.components.maps import get_map
 from utils import covert_to_df, get_knowledge_area_data, get_options
 from dash import dash_table
+import urllib
 
+import dash_bootstrap_components as dbc
 
+def getapp():
 
-
-external_stylesheets = [
+    external_stylesheets = [
         'https://unpkg.com/tailwindcss@^2.0/dist/tailwind.min.css"']
-app = dash.Dash(__name__, meta_tags=[
+    app = dash.Dash(__name__, meta_tags=[
                     {"name": "viewport", "content": "width=device-width, initial-scale=1"}], external_stylesheets=external_stylesheets)
-app.title = 'I2E Dashboard'
-app.config.suppress_callback_exceptions = True
-raw = covert_to_df()
-mapa = get_map(raw)
-server = app.server
+    app.title = 'I2E Dashboard'
+    app.config.suppress_callback_exceptions = True
+    raw = covert_to_df()
+    mapa = get_map(raw)
 
-datatemp = raw[["Researcher", "Surname",
+    datatemp = raw[["Researcher", "Surname",
                     "Organization", "City", "Knowledge"]]
-datatemp = datatemp.drop_duplicates()
-datatemp = datatemp.sort_values(by=["Knowledge"])
-data_dict = datatemp.to_dict('records')
+    datatemp = datatemp.drop_duplicates()
+    datatemp = datatemp.sort_values(by=["Knowledge"])
+    data_dict = datatemp.to_dict('records')
 
     # traducir a español
-data_table = dash_table.DataTable(
+    data_table = dash_table.DataTable(
         id='researcher-table',
         data=data_dict,
         columns=[{"name": i, "id": i} for i in datatemp.columns],
@@ -38,22 +39,22 @@ data_table = dash_table.DataTable(
         style_cell={'border': '1px solid grey',
                     'textAlign': 'left', 'padding': '5px'},
 
-style_header={'backgroundColor': '#f8f8f8', 'fontWeight': 'bold'},
+        style_header={'backgroundColor': '#f8f8f8', 'fontWeight': 'bold'},
         css=[{'selector': '.dash-spreadsheet td div',
               'rule': 'display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;'}],
     )
-area = get_knowledge_area_data("Area", raw)
-discipline = get_knowledge_area_data("Disciplina", raw)
-subdiscipline = get_knowledge_area_data("Subdisciplina", raw)
-field = get_knowledge_area_data("Campo", raw)
-subfield = get_knowledge_area_data("Subcampo", raw)
-area_options = get_options(area)
-discipline_options = get_options(discipline)
-subdiscipline_options = get_options(subdiscipline)
-field_options = get_options(field)
-subfield_options = get_options(subfield)
+    area = get_knowledge_area_data("Area", raw)
+    discipline = get_knowledge_area_data("Disciplina", raw)
+    subdiscipline = get_knowledge_area_data("Subdisciplina", raw)
+    field = get_knowledge_area_data("Campo", raw)
+    subfield = get_knowledge_area_data("Subcampo", raw)
+    area_options = get_options(area)
+    discipline_options = get_options(discipline)
+    subdiscipline_options = get_options(subdiscipline)
+    field_options = get_options(field)
+    subfield_options = get_options(subfield)
 
-app.layout = html.Div(className="bg-gray-200	 h-full", children=[
+    app.layout = html.Div(className="bg-gray-200	 h-full", children=[
         html.Div(className="container mx-auto py-4", children=[
             html.Div(className="flex justify-between items-center px-4", children=[
                 html.Span(className="text-2xl font-bold",
@@ -84,6 +85,7 @@ app.layout = html.Div(className="bg-gray-200	 h-full", children=[
                         options=[{"label": Organization, "value": Organization} for Organization in raw["Organization"].unique(
                         ).tolist() + ["Todas"] if Organization != "Organization"],
                         value="Todas",
+                          multi=True,
                         className="w-full py-2 px-4 rounded-lg shadow-md bg-gray-200"
                     ),
                     html.Label("Tipo de aprendizaje"),
@@ -92,6 +94,7 @@ app.layout = html.Div(className="bg-gray-200	 h-full", children=[
                         options=[{"label": learning_type, "value": learning_type} for learning_type in raw["KnowledgeType"].unique(
                         ).tolist() + ["Todas"] if learning_type != "KnowledgeDiscipline"],
                         value="Todas",
+                          multi=True,
                         className="w-full py-2 px-4 rounded-lg shadow-md bg-gray-200"
                     ),
                     html.Label("Cuidad"),
@@ -100,6 +103,7 @@ app.layout = html.Div(className="bg-gray-200	 h-full", children=[
                         options=[{"label": city, "value": city}
                                  for city in raw["City"].unique().tolist() + ["Todas"] if city != "City"],
                         value="Todas",
+                          multi=True,
                         className="w-full py-2 px-4 rounded-lg shadow-md bg-gray-200"
                     ),
                 ]),
@@ -109,6 +113,7 @@ app.layout = html.Div(className="bg-gray-200	 h-full", children=[
                         id="Area",
                         options=area_options,
                         value="Todas",
+                          multi=True,
                         className="w-full py-2 px-4 rounded-lg shadow-md bg-gray-200"
                     ),
                     html.Label("Disciplina"),
@@ -116,11 +121,13 @@ app.layout = html.Div(className="bg-gray-200	 h-full", children=[
                         id="Discipline",
                         options=discipline_options,
                         value="Todas",
+                          multi=True,
                         className="w-full py-2 px-4 rounded-lg shadow-md bg-gray-200"
                     ),
                     html.Label("Campo"),
                     dcc.Dropdown(
                         id="Field",
+                            multi=True,
                         options=field_options,
                         value="Todas",
                         className="w-full py-2 px-4 rounded-lg shadow-md bg-gray-200"
@@ -152,64 +159,62 @@ html.Button("Descargar tabla", id="btn_xlsx",className="bg-blue-500 hover:bg-blu
         ])
     ])
 
-@app.callback(
-        Output(component_id='researcher-count', component_property='children'),
-        [Input(component_id='Organization', component_property='value'),
-         Input(component_id='learning-type-dropdown',
-               component_property='value'),
-         Input(component_id='city-dropdown', component_property='value'),
-         Input(component_id='Area', component_property='value'),
-         Input(component_id='Discipline', component_property='value'),
-         Input(component_id='Field', component_property='value')
-         ]
-    )
-def update_researcher_count(selected_organization, learning_type, city, area, discipline, field):
+    # Define the callback function
+    @app.callback(
+    Output(component_id='researcher-count', component_property='children'),
+    [Input(component_id='Organization', component_property='value'),
+     Input(component_id='learning-type-dropdown', component_property='value'),
+     Input(component_id='city-dropdown', component_property='value'),
+     Input(component_id='Area', component_property='value'),
+     Input(component_id='Discipline', component_property='value'),
+     Input(component_id='Field', component_property='value')
+    ]
+)
+    def update_researcher_count(selected_organization, learning_type, city, area, discipline, field):
         filtered_data = raw
         if selected_organization != 'Todas':
-            filtered_data = filtered_data[filtered_data['Organization']
-                                          == selected_organization]
+            filtered_data = filtered_data[filtered_data['Organization'].isin(selected_organization)]
         if learning_type != 'Todas':
-            filtered_data = filtered_data[filtered_data['KnowledgeType']
-                                          == learning_type]
+            filtered_data = filtered_data[filtered_data['KnowledgeType'].isin(learning_type)]
         if city != 'Todas':
-            filtered_data = filtered_data[filtered_data['City'] == city]
+            filtered_data = filtered_data[filtered_data['City'].isin(city)]
         if area != 'Todas':
-            filtered_data = filtered_data[filtered_data['Knowledge'] == area]
+            filtered_data = filtered_data[filtered_data['Knowledge'].isin(area)]
         if discipline != 'Todas':
-            filtered_data = filtered_data[filtered_data['Knowledge']
-                                          == discipline]
+            filtered_data = filtered_data[filtered_data['Knowledge'].isin(discipline)]
         if field != 'Todas':
-            filtered_data = filtered_data[filtered_data['Knowledge'] == field]
+            filtered_data = filtered_data[filtered_data['Knowledge'].isin(field)]
         count = len(filtered_data['Researcher'].unique())
         if count == 1:
-            #add onther text of investigaciones
+        
             return f'{count} Investigador' + 'con 0 Investigaciones' 
+        
+        count =10 
         return f'{count} Investigadores ' + 'con 0 Investigaciones'
 
-@app.callback(
-        dash.dependencies.Output("knowledge-area-bar-chart", "figure"),
-        [dash.dependencies.Input("learning-type-dropdown", "value"),
-         dash.dependencies.Input("Organization", "value"),
-         dash.dependencies.Input("city-dropdown", "value"),
-         dash.dependencies.Input("Area", "value"),
-         dash.dependencies.Input("Discipline", "value"),
-
-         dash.dependencies.Input("Field", "value")])
-def update_knowledge_area_bar_chart(learning_type, selected_organization, city, area, discipline, field):
+    @app.callback(
+dash.dependencies.Output("knowledge-area-bar-chart", "figure"),
+[dash.dependencies.Input("learning-type-dropdown", "value"),
+dash.dependencies.Input("Organization", "value"),
+dash.dependencies.Input("city-dropdown", "value"),
+dash.dependencies.Input("Area", "value"),
+dash.dependencies.Input("Discipline", "value"),
+dash.dependencies.Input("Field", "value")])
+    def update_knowledge_area_bar_chart(learning_type, selected_organization, city, area, discipline, field):
         filtered_data = raw
         if selected_organization != 'Todas':
             filtered_data = filtered_data[filtered_data['Organization']
-                                          == selected_organization]
+                                        == selected_organization]
         if learning_type != 'Todas':
             filtered_data = filtered_data[filtered_data['KnowledgeType']
-                                          == learning_type]
+                                        == learning_type]
         if city != 'Todas':
             filtered_data = filtered_data[filtered_data['City'] == city]
         if area != 'Todas':
             filtered_data = filtered_data[filtered_data['Knowledge'] == area]
         if discipline != 'Todas':
             filtered_data = filtered_data[filtered_data['Knowledge']
-                                          == discipline]
+                                        == discipline]
         if field != 'Todas':
             filtered_data = filtered_data[filtered_data['Knowledge'] == field]
 
@@ -221,10 +226,10 @@ def update_knowledge_area_bar_chart(learning_type, selected_organization, city, 
 
         }
 
-@app.callback(
+    @app.callback(
         dash.dependencies.Output("map-graph", "figure"),
         [dash.dependencies.Input("Organization", "value"), dash.dependencies.Input("city-dropdown", "value")])
-def update_map_Org(Organization, City):
+    def update_map_Org(Organization, City):
         if Organization == "Todas" and City == "Todas":
             return get_map(raw)
         elif Organization != "Todas" and City == "Todas":
@@ -251,7 +256,7 @@ def update_map_Org(Organization, City):
                 mapbox_zoom=10, mapbox_center={"lat": latitude, "lon": longitude})
             return map_filtered
 
-@app.callback(
+    @app.callback(
         Output(component_id='researcher-table', component_property='data'),
         [Input(component_id='map-graph', component_property='selectedData'),
          Input(component_id='learning-type-dropdown',
@@ -262,7 +267,7 @@ def update_map_Org(Organization, City):
          Input(component_id='Discipline', component_property='value'),
          Input(component_id='Field', component_property='value')]
     )
-def update_table(selected_data, learning_type, organization, city, area, discipline, field):
+    def update_table(selected_data, learning_type, organization, city, area, discipline, field):
         raw.drop_duplicates(subset="Researcher")
         filtered_data = raw
 
@@ -286,7 +291,7 @@ def update_table(selected_data, learning_type, organization, city, area, discipl
             filtered_data = filtered_data[filtered_data["Knowledge"] == field]
         return filtered_data.to_dict('records')
 
-@app.callback(
+    @app.callback(
         Output("knowledge-type-pie-chart", "figure"),
         [Input("learning-type-dropdown", "value"),
          Input("Organization", "value"),
@@ -294,7 +299,7 @@ def update_table(selected_data, learning_type, organization, city, area, discipl
          Input("Area", "value"),
          Input("Discipline", "value"),
          Input("Field", "value")])
-def update_knowledge_type_pie_chart(learning_type, organization, city, area, discipline, field):
+    def update_knowledge_type_pie_chart(learning_type, organization, city, area, discipline, field):
         filtered_data = raw
         if learning_type != "Todas":
             filtered_data = filtered_data[filtered_data["KnowledgeType"]
@@ -317,26 +322,26 @@ def update_knowledge_type_pie_chart(learning_type, organization, city, area, dis
             "layout": go.Layout(title="Tipos de Conocimiento", template="seaborn")
         }
 
-@app.callback(
+    @app.callback(
         Output("download-data", "href"),
         [Input("download-button", "n_clicks")],
         [State("researcher-table", "data")],
     )
-@app.callback(
+    @app.callback(
     Output("download-dataframe-xlsx", "data"),
     Input("btn_xlsx", "n_clicks"), 
     State("researcher-table", "data"),
     prevent_initial_call=True,
 )
-def func(n_clicks, data):
+    def func(n_clicks, data):
         data=pd.DataFrame(data)
         
         return dcc.send_data_frame(data.to_excel, "Dash.xlsx")
     
+    return app
     
     
 
-
-   
-if __name__ == "__main__":
+if __name__ == '__main__':
+    app = getapp()
     app.run_server(host="0.0.0.0", port=8050, debug=True)

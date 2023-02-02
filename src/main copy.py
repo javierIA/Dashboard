@@ -59,14 +59,16 @@ data_table = dash_table.DataTable(
 )
 area = get_knowledge_area_data("Area", raw)
 discipline = get_knowledge_area_data("Disciplina", raw)
-subdiscipline = get_knowledge_area_data("Subdisciplina", raw)
+subdiscipline = get_knowledge_area_data("Sub-disciplina", raw)
 field = get_knowledge_area_data("Campo", raw)
-subfield = get_knowledge_area_data("Subcampo", raw)
+subfield = get_knowledge_area_data("Sub-campo", raw)
 area_options = get_options(area)
 discipline_options = get_options(discipline)
 subdiscipline_options = get_options(subdiscipline)
 field_options = get_options(field)
 subfield_options = get_options(subfield)
+raw = raw.fillna(False, axis=1)
+print(raw)
 app.layout = html.Div(className="container-fluid ", children=[
     html.Div(className="", children=[
         html.Div(className="container-fluid", children=[
@@ -103,6 +105,16 @@ app.layout = html.Div(className="container-fluid ", children=[
                         options=[{"label": Organization, "value": Organization} for Organization in raw["Organization"].unique(
                         ).tolist() + ["Todas"] if Organization != "Organization"],
                         value="Todas",
+                        className="form-control px-4"
+                    )
+                ]),
+                html.Div(className="col-md-4", children=[
+                    html.Label("Ciudad", className="px-4"),
+                    dcc.Dropdown(
+                        id="city-dropdown",
+                        options=[{"label": city, "value": city}
+                                 for city in raw["City"].unique().tolist() + ["Todas"] if city != "City"],
+                        value="Todas",
                         multi=True,
                         className="form-control px-4"
                     )
@@ -118,17 +130,7 @@ app.layout = html.Div(className="container-fluid ", children=[
                         className="form-control px-4"
                     )
                 ]),
-                html.Div(className="col-md-4", children=[
-                    html.Label("Ciudad", className="px-4"),
-                    dcc.Dropdown(
-                        id="city-dropdown",
-                        options=[{"label": city, "value": city}
-                                 for city in raw["City"].unique().tolist() + ["Todas"] if city != "City"],
-                        value="Todas",
-                        multi=True,
-                        className="form-control px-4"
-                    )
-                ]),
+
                 html.Div(className="col-md-4", children=[
                     html.Label("Area de conocimiento", className="px-4"),
                     dcc.Dropdown(
@@ -224,13 +226,13 @@ def update_researcher_count(selected_organization, learning_type, city, area, di
 
 
 @app.callback(
-    dash.dependencies.Output("knowledge-area-bar-chart", "figure"),
-    [dash.dependencies.Input("learning-type-dropdown", "value"),
-     dash.dependencies.Input("Organization", "value"),
-     dash.dependencies.Input("city-dropdown", "value"),
-     dash.dependencies.Input("Area", "value"),
-     dash.dependencies.Input("Discipline", "value"),
-     dash.dependencies.Input("Field", "value")])
+    Output("knowledge-area-bar-chart", "figure"),
+    [Input("learning-type-dropdown", "value"),
+     Input("Organization", "value"),
+     Input("city-dropdown", "value"),
+     Input("Area", "value"),
+     Input("Discipline", "value"),
+     Input("Field", "value")])
 def update_knowledge_area_bar_chart(learning_type, selected_organization, city, area, discipline, field):
     filtered_data = raw
     if selected_organization != 'Todas':

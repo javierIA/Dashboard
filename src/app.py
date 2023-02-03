@@ -3,7 +3,6 @@ import dash
 from dash.dependencies import Input, Output, State
 from dash import html
 from dash import dcc
-import datetime as dt
 import pandas as pd
 import plotly.graph_objects as go
 from tools.components.maps import get_map
@@ -68,7 +67,6 @@ subdiscipline_options = get_options(subdiscipline)
 field_options = get_options(field)
 subfield_options = get_options(subfield)
 raw = raw.fillna(False, axis=1)
-print(raw)
 app.layout = html.Div(className="container-fluid ", children=[
     html.Div(className="", children=[
         html.Div(className="container-fluid", children=[
@@ -115,7 +113,6 @@ app.layout = html.Div(className="container-fluid ", children=[
                         options=[{"label": city, "value": city}
                                  for city in raw["City"].unique().tolist() + ["Todas"] if city != "City"],
                         value="Todas",
-                        multi=True,
                         className="form-control px-4"
                     )
                 ]),
@@ -126,7 +123,6 @@ app.layout = html.Div(className="container-fluid ", children=[
                         options=[{"label": learning_type, "value": learning_type} for learning_type in raw["KnowledgeType"].unique(
                         ).tolist() + ["Todas"] if learning_type != "KnowledgeDiscipline"],
                         value="Todas",
-                        multi=True,
                         className="form-control px-4"
                     )
                 ]),
@@ -202,12 +198,13 @@ def update_researcher_count(selected_organization, learning_type, city, area, di
     filtered_data = raw
     if selected_organization != 'Todas':
         filtered_data = filtered_data[filtered_data['Organization'].isin(
-            selected_organization)]
+            [selected_organization])]
     if learning_type != 'Todas':
         filtered_data = filtered_data[filtered_data['KnowledgeType'].isin(
             learning_type)]
     if city != 'Todas':
-        filtered_data = filtered_data[filtered_data['City'].isin(city)]
+        filtered_data = filtered_data[filtered_data['City'].isin(
+            [city])]
     if area != 'Todas':
         filtered_data = filtered_data[filtered_data['Knowledge'].isin(
             area)]
@@ -229,11 +226,8 @@ def update_researcher_count(selected_organization, learning_type, city, area, di
     Output("knowledge-area-bar-chart", "figure"),
     [Input("learning-type-dropdown", "value"),
      Input("Organization", "value"),
-     Input("city-dropdown", "value"),
-     Input("Area", "value"),
-     Input("Discipline", "value"),
-     Input("Field", "value")])
-def update_knowledge_area_bar_chart(learning_type, selected_organization, city, area, discipline, field):
+     Input("city-dropdown", "value")])
+def update_knowledge_area_bar_chart(learning_type, selected_organization, city):
     filtered_data = raw
     if selected_organization != 'Todas':
         filtered_data = filtered_data[filtered_data['Organization']
@@ -243,20 +237,11 @@ def update_knowledge_area_bar_chart(learning_type, selected_organization, city, 
                                       == learning_type]
     if city != 'Todas':
         filtered_data = filtered_data[filtered_data['City'] == city]
-    if area != 'Todas':
-        filtered_data = filtered_data[filtered_data['Area'] == area]
-    if discipline != 'Todas':
-        filtered_data = filtered_data[filtered_data['Discipline']
-                                      == discipline]
-    if field != 'Todas':
-        filtered_data = filtered_data[filtered_data['Field'] == field]
 
-    count_df = filtered_data.groupby("Knowledge")["Researcher"].nunique()
-
+    count_df = filtered_data['Knowledge'].value_counts()
     return {
         "data": [go.Bar(x=count_df.index, y=count_df.values)],
         "layout": go.Layout(title="Áreas de Conocimiento", xaxis={"title": "Área de Conocimiento"}, yaxis={"title": "Número de Investigadores Únicos"}, template="seaborn")
-
     }
 
 
@@ -285,13 +270,10 @@ def update_map_Org(Organization, City):
      Input(component_id='learning-type-dropdown',
            component_property='value'),
      Input(component_id='Organization', component_property='value'),
-     Input(component_id='city-dropdown', component_property='value'),
-     Input(component_id='Area', component_property='value'),
-     Input(component_id='Discipline', component_property='value'),
-     Input(component_id='Field', component_property='value')]
+     Input(component_id='city-dropdown', component_property='value')]
 )
-def update_table(selected_data, learning_type, organization, city, area, discipline, field):
-    raw.drop_duplicates(subset="Researcher")
+def update_table(selected_data, learning_type, organization, city):
+    raw.drop_duplicates(subset="Researcher", inplace=True)
     filtered_data = raw
 
     if selected_data is not None:
@@ -303,15 +285,12 @@ def update_table(selected_data, learning_type, organization, city, area, discipl
 
         filtered_data = filtered_data[filtered_data["KnowledgeType"]
                                       == learning_type]
+    if organization != "Todas":
+        filtered_data = filtered_data[filtered_data["Organization"]
+                                      == organization]
     if city != "Todas":
         filtered_data = filtered_data[filtered_data["City"] == city]
-    if area != "Todas":
-        filtered_data = filtered_data[filtered_data["Knowledge"] == area]
-    if discipline != "Todas":
-        filtered_data = filtered_data[filtered_data["Knowledge"]
-                                      == discipline]
-    if field != "Todas":
-        filtered_data = filtered_data[filtered_data["Knowledge"] == field]
+
     return filtered_data.to_dict('records')
 
 
@@ -320,10 +299,8 @@ def update_table(selected_data, learning_type, organization, city, area, discipl
     [Input("learning-type-dropdown", "value"),
      Input("Organization", "value"),
      Input("city-dropdown", "value"),
-     Input("Area", "value"),
-     Input("Discipline", "value"),
-     Input("Field", "value")])
-def update_knowledge_type_pie_chart(learning_type, organization, city, area, discipline, field):
+     ])
+def update_knowledge_type_pie_chart(learning_type, organization, city):
     filtered_data = raw
     if learning_type != "Todas":
         filtered_data = filtered_data[filtered_data["KnowledgeType"]
@@ -333,13 +310,6 @@ def update_knowledge_type_pie_chart(learning_type, organization, city, area, dis
                                       == organization]
     if city != "Todas":
         filtered_data = filtered_data[filtered_data["City"] == city]
-    if area != "Todas":
-        filtered_data = filtered_data[filtered_data["Knowledge"] == area]
-    if discipline != "Todas":
-        filtered_data = filtered_data[filtered_data["Knowledge"]
-                                      == discipline]
-    if field != "Todas":
-        filtered_data = filtered_data[filtered_data["Knowledge"] == field]
     df = filtered_data.groupby("Knowledge")["Researcher"].count()
     return {
         "data": [go.Pie(labels=df.index, values=df.values)],

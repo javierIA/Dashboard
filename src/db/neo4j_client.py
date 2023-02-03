@@ -1,19 +1,24 @@
 import logging
 from contextlib import asynccontextmanager
 from db.model import seriaizer_organitation, serializer_location, serializer_researcher, serializer_knowledgediscipline
+from dotenv import load_dotenv
 from neo4j import (
     basic_auth,
     AsyncGraphDatabase,
 )
+import os
 
 
 class Neo4jClient:
     def __init__(self):
-        self.url = "bolt://ec2-54-227-173-99.compute-1.amazonaws.com:7687"
-        self.username = "neo4j"
-        self.password = "password"
-        self.database = "neo4j"
-        self.neo4j_version = "5.3.0"
+
+        load_dotenv()
+
+        self.url = os.getenv("URL")
+        self.username = os.getenv("USERNAME")
+        self.password = os.getenv("PASSWORD")
+        self.database = os.getenv("DATABASE")
+        self.neo4j_version = os.getenv("NEO4J_VERSION")
         self.driver = AsyncGraphDatabase.driver(
             self.url, auth=basic_auth(self.username, self.password))
         self.logger = logging.getLogger(__name__)

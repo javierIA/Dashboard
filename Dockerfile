@@ -17,5 +17,5 @@ COPY /src /usr/src/app/
 RUN useradd -m appUser
 USER appUser
 
-# Run locally on port 8050
+# Run locally on port 8080
 CMD gunicorn --bind 0.0.0.0:8080 app:server

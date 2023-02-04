@@ -29,6 +29,7 @@ def covert_to_df():
         return row
 
     def set_values(row):
+        print(row["City"])
         row["City"] = row["City"] or 'Juarez'
         row["KnowledgeType"] = row["KnowledgeType"][0] if row["KnowledgeType"] is not None else "Default"
         if row["KnowledgeType"] in ["KnowledgeDiscipline", "KnowledgeArea", "KnowledgeSubdiscipline", "KnowledgeField"]:

@@ -22,17 +22,22 @@ mapa = get_map(raw)
 server = app.server
 datatemp = raw[["Researcher", "Surname",
                 "Organization", "City", "Knowledge"]]
+
 datatemp = datatemp.drop_duplicates()
-datatemp = datatemp.sort_values(by=["Knowledge"])
 data_dict = datatemp.to_dict('records')
 
-# traducir a español
 data_table = dash_table.DataTable(
     id='researcher-table',
     data=data_dict,
     page_size=10,
     page_action="native",
-    columns=[{"name": i, "id": i} for i in datatemp.columns],
+    columns=[  # ID, Organization, City, Knowledg
+        {"name": "Nombre", "id": "Researcher"},
+        {"name": "Apellido", "id": "Surname"},
+        {"name": "Organización", "id": "Organization"},
+        {"name": "Ciudad", "id": "City"},
+        {"name": "Conocimiento", "id": "Knowledge"},
+    ],
     filter_action="native",
     sort_action="native",
     sort_mode="single",

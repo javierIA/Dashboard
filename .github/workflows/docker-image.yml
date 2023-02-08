@@ -1,33 +1,29 @@
-name:  update 
+
+name: Deployment
+
 on:
   push:
     branches:
-      - main  
-  
+      - master
 
-env:
-  DOCKER_COMPOSE_VERSION: 1.27.4
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    
+    runs-on: self-hosted
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Docker install
-      run:  |
-        sudo apt install docker
-    - name: Setup Docker Compose
-      run: |
-        sudo dnf update
-        sudo dnf -y install curl
-        sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-    - name: Load Data 
-      run: |
-        chmod +x init.sh && ./init.sh
-
-    - name: Deploy with Docker Compose
-      run: |
-        docker-compose up -d
+        - uses: actions/checkout@v2
+        - name: Install Docker Compose
+          run: |
+            sudo curl -L "https://github.com/docker/compose/releases/download/v2.15.0/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+            sudo echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
+            source ~/.bashrc
+            sudo chmod +x /usr/local/bin/docker-compose
+        - name: Fix Path
+          run: |
+            sudo echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
+            source ~/.bashrc
+        - name: Build 
+          run: 
+            docker-compose build 
+        - name: UpCompose
+          run: docker-compose up -d

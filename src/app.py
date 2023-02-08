@@ -264,7 +264,7 @@ def update_map_Org(Organization, City):
     longitude = filtered_data['Long'].mean()
     latitude = filtered_data['Lat'].mean()
     map_filtered = get_map(filtered_data).update_layout(
-        mapbox_zoom=10, mapbox_center={"lat": latitude, "lon": longitude})
+        mapbox_zoom=8, mapbox_center={"lat": latitude, "lon": longitude})
 
     return map_filtered
 

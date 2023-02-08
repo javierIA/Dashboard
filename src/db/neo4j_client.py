@@ -36,7 +36,7 @@ class Neo4jClient:
         async def work(tx):
             result = await tx.run(
                 """MATCH (o)-[:HAS]->(r:Researcher)
-            WHERE (o:Organization OR o:AcademicInstitution OR o:GovermentInstitution) AND r IS NOT NULL
+            WHERE (o:Organization OR o:AcademicInstitution OR o:GovermentInstitution OR o:Enterprise) AND r IS NOT NULL
             OPTIONAL MATCH (r)-[:INTERESTED_IN]->(k)
             OPTIONAL MATCH (o)-[:LOCATED_IN]->(c:City)
             RETURN DISTINCT

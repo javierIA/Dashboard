@@ -3,7 +3,7 @@ name: Deployment
 on:
   push:
     branches:
-      - main
+      - master
 
 env:
   DOCKER_COMPOSE_VERSION: 1.27.4

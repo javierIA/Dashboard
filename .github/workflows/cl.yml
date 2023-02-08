@@ -11,24 +11,10 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Docker install
-      run:  |
-        sudo apt-get update
-        sudo apt install -y docker.io
-    - name: Setup Docker Compose
-      run: |
-        sudo apt install update
-        sudo apt install -y install curl
-        sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-    - name: Load Data 
-      run: |
-        chmod +x init.sh && ./init.sh
-
-    - name: Deploy with Docker Compose
-      run: |
-        docker-compose up -d
+        - uses: actions/checkout@v2
+        - name: Build the stack
+          run: docker-compose up -d
+        - name: Load Data 
+          run: |
+            chmod +x init.sh && ./init.sh

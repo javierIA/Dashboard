@@ -24,6 +24,6 @@ jobs:
             source ~/.bashrc
         - name: Build 
           run: 
-            sudo docker-compose build 
+            docker-compose build 
         - name: UpCompose
           run: docker-compose up -d

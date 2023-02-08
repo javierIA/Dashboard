@@ -5550,3 +5550,28 @@ java.lang.NullPointerException: Cannot read the array length because "array" is 
 2023-02-08 07:13:43.857+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] id: 80AF1E2D59E97C69D488908CA8C1A27EADE737D42E30930786B9E70AAA3FAD9A
 2023-02-08 07:13:43.857+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] name: system
 2023-02-08 07:13:43.858+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] creationDate: 2023-02-08T06:57:48.075Z
+2023-02-08 07:20:36.223+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] Shutdown started
+2023-02-08 07:20:36.237+0000 INFO  [o.n.b.BoltServer] Requested Bolt server shutdown
+2023-02-08 07:20:36.237+0000 INFO  [o.n.b.p.c.c.ConnectionRegistry] Stopping remaining idle connections for connector bolt
+2023-02-08 07:20:36.237+0000 INFO  [o.n.b.p.c.c.ConnectionRegistry] Stopped 0 idling connections for connector bolt
+2023-02-08 07:20:36.239+0000 INFO  [o.n.d.d.DatabaseLifecycles] Stopping 'DatabaseId{5d2e9ec3[neo4j]}'.
+2023-02-08 07:20:36.239+0000 INFO  [o.n.k.a.DatabaseAvailabilityGuard] [neo4j/5d2e9ec3] Requirement `Database unavailable` makes database neo4j unavailable.
+2023-02-08 07:20:36.240+0000 INFO  [o.n.k.a.DatabaseAvailabilityGuard] [neo4j/5d2e9ec3] DatabaseId{5d2e9ec3[neo4j]} is unavailable.
+2023-02-08 07:20:36.240+0000 INFO  [o.n.k.d.Database] [neo4j/5d2e9ec3] Waiting for closing transactions.
+2023-02-08 07:20:36.242+0000 INFO  [o.n.k.d.Database] [neo4j/5d2e9ec3] All transactions are closed.
+2023-02-08 07:20:36.243+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] [neo4j/5d2e9ec3] Checkpoint triggered by "Database shutdown" @ txId: 5491 checkpoint started...
+2023-02-08 07:20:36.263+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] [neo4j/5d2e9ec3] Checkpoint triggered by "Database shutdown" @ txId: 5491 checkpoint completed in 19ms. Checkpoint flushed 44 pages (0% of total available pages), in 44 IOs. Checkpoint performed with IO limit: unlimited, paused in total 0 times( 0 millis).
+2023-02-08 07:20:36.264+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] [neo4j/5d2e9ec3] No log version pruned. The strategy used was '104857600 size'. 
+2023-02-08 07:20:36.313+0000 INFO  [o.n.d.d.DatabaseLifecycles] Stopped 'DatabaseId{5d2e9ec3[neo4j]}' successfully.
+2023-02-08 07:20:36.314+0000 INFO  [o.n.d.d.DatabaseLifecycles] Stopping 'DatabaseId{00000000[system]}'.
+2023-02-08 07:20:36.314+0000 INFO  [o.n.k.a.DatabaseAvailabilityGuard] [system/00000000] Requirement `Database unavailable` makes database system unavailable.
+2023-02-08 07:20:36.314+0000 INFO  [o.n.k.a.DatabaseAvailabilityGuard] [system/00000000] DatabaseId{00000000[system]} is unavailable.
+2023-02-08 07:20:36.315+0000 INFO  [o.n.k.d.Database] [system/00000000] Waiting for closing transactions.
+2023-02-08 07:20:36.315+0000 INFO  [o.n.k.d.Database] [system/00000000] All transactions are closed.
+2023-02-08 07:20:36.315+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] [system/00000000] Checkpoint triggered by "Database shutdown" @ txId: 36 checkpoint started...
+2023-02-08 07:20:36.337+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] [system/00000000] Checkpoint triggered by "Database shutdown" @ txId: 36 checkpoint completed in 21ms. Checkpoint flushed 29 pages (0% of total available pages), in 29 IOs. Checkpoint performed with IO limit: unlimited, paused in total 0 times( 0 millis).
+2023-02-08 07:20:36.337+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] [system/00000000] No log version pruned. The strategy used was '104857600 size'. 
+2023-02-08 07:20:36.374+0000 INFO  [o.n.d.d.DatabaseLifecycles] Stopped 'DatabaseId{00000000[system]}' successfully.
+2023-02-08 07:20:36.376+0000 INFO  [o.n.b.BoltServer] Shutting down Bolt server
+2023-02-08 07:20:36.376+0000 INFO  [o.n.b.p.c.c.ConnectionRegistry] Stopping 0 connections for connector bolt
+2023-02-08 07:20:36.376+0000 INFO  [o.n.b.p.c.c.ConnectionRegistry] Stopped all remaining connections for connector bolt

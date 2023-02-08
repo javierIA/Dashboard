@@ -115,3 +115,5 @@
 2023-02-08 07:13:43.857+0000 INFO  name: system
 2023-02-08 07:13:43.858+0000 INFO  creationDate: 2023-02-08T06:57:48.075Z
 2023-02-08 07:13:43.858+0000 INFO  Started.
+2023-02-08 07:20:36.222+0000 INFO  Neo4j Server shutdown initiated by request
+2023-02-08 07:20:36.223+0000 INFO  Stopping...

@@ -9,7 +9,7 @@ services:
     volumes:
       - ./src:/wd/src
     environment:
-      - PORT=8080
+      - PORT=80
     command: gunicorn --workers=5 --threads=1 -b 0.0.0.0:80 app:server
     depends_on:
       - neo4j

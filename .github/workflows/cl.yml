@@ -1,3 +1,4 @@
+
 name: Deployment
 
 on:
@@ -12,7 +13,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v2
         - name: Install Docker Compose
           run: |
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose

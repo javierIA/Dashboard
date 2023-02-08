@@ -53,7 +53,7 @@ subdiscipline_options = get_options(subdiscipline)
 field_options = get_options(field)
 subfield_options = get_options(subfield)
 
-app.layout = html.Div(className="f8f8f8	 h-full", children=[
+app.layout = html.Div(className="h-full", children=[
     html.Div(className="container mx-auto py-4", children=[
         html.Div(className="flex justify-between items-center px-4", children=[
             html.Span(className="text-2xl font-bold",

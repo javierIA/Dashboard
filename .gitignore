@@ -7,4 +7,6 @@ dist/
 eggs/
 .env
 .venv
+neo4j/
 neo4j/data/
+neo4j/logs/

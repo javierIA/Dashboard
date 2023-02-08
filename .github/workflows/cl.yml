@@ -6,8 +6,6 @@ on:
     branches:
       - master
 
-env:
-  DOCKER_COMPOSE_VERSION: 2.15.1
 
 jobs:
   deploy:
@@ -24,6 +22,6 @@ jobs:
             source ~/.bashrc
         - name: Build 
           run: 
-            docker-compose build 
+            sudo docker-compose build 
         - name: UpCompose
-          run: docker-compose up -d
+          run: sudo docker-compose up -d

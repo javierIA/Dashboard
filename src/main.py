@@ -57,7 +57,7 @@ app.layout = html.Div(className="bg-gray-200	 h-full", children=[
     html.Div(className="container mx-auto py-4", children=[
         html.Div(className="flex justify-between items-center px-4", children=[
             html.Span(className="text-2xl font-bold",
-                      children="I2E Dashboard"),
+                      children=""),
         ]),
 
         html.Div(className="grid grid-cols-3 gap-4", children=[

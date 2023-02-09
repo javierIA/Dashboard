@@ -173,3 +173,4 @@
 2023-02-09 19:32:22.109+0000 INFO  Started.
 2023-02-09 19:37:19.787+0000 INFO  Neo4j Server shutdown initiated by request
 2023-02-09 19:37:19.787+0000 INFO  Stopping...
+2023-02-09 19:37:24.893+0000 INFO  Stopped.

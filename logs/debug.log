@@ -8331,3 +8331,4 @@ java.lang.NullPointerException: Cannot read the array length because "array" is 
 2023-02-09 19:37:19.879+0000 INFO  [o.n.b.BoltServer] Shutting down Bolt server
 2023-02-09 19:37:19.879+0000 INFO  [o.n.b.p.c.c.ConnectionRegistry] Stopping 0 connections for connector bolt
 2023-02-09 19:37:19.879+0000 INFO  [o.n.b.p.c.c.ConnectionRegistry] Stopped all remaining connections for connector bolt
+2023-02-09 19:37:24.891+0000 INFO  [o.n.b.BoltServer] Bolt server has been shut down

@@ -1,6 +1,5 @@
 import logging
 from contextlib import asynccontextmanager
-from db.model import seriaizer_organitation, serializer_location, serializer_researcher, serializer_knowledgediscipline
 from dotenv import load_dotenv
 from neo4j import (
     basic_auth,

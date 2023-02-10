@@ -217,7 +217,7 @@ def update_researcher_count(selected_organization, learning_type, city, area, di
             [discipline])]
     if field != 'Todas':
 
-        filtered_data = filtered_data[filtered_data['Field'].isin(
+        filtered_data = filtered_data[filtered_data['Knowledge'].isin(
             [field])]
 
     unique_researchers = filtered_data['Id'].unique()

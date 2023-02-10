@@ -6,12 +6,11 @@ from dash import dcc
 import pandas as pd
 import plotly.graph_objects as go
 from tools.components.maps import get_map
-from utils import covert_to_df, get_knowledge_area_data, get_options
+from utils import covert_to_df, get_knowledge_area_data, get_options, count_investigation_by_searcher
 from dash import dash_table
 import urllib
 import dash_bootstrap_components as dbc
-
-
+import asyncio
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, meta_tags=[
     {"name": "viewport", "content": "width=device-width, initial-scale=1"}], external_stylesheets=external_stylesheets)
@@ -206,28 +205,36 @@ def update_researcher_count(selected_organization, learning_type, city, area, di
             [selected_organization])]
     if learning_type != 'Todas':
         filtered_data = filtered_data[filtered_data['KnowledgeType'].isin(
-            learning_type)]
+            [learning_type])]
     if city != 'Todas':
         filtered_data = filtered_data[filtered_data['City'].isin(
             [city])]
     if area != 'Todas':
-        filtered_data = filtered_data[filtered_data['Knowledge'].isin(
-            area)]
+        filtered_data = filtered_data[filtered_data['Area'].isin(
+            [area])]
     if discipline != 'Todas':
-        filtered_data = filtered_data[filtered_data['Knowledge'].isin(
-            discipline)]
+        filtered_data = filtered_data[filtered_data['Discipline'].isin(
+            [discipline])]
     if field != 'Todas':
-        filtered_data = filtered_data[filtered_data['Knowledge'].isin(
-            field)]
-    count = len(filtered_data['Researcher'].unique())
-    if count == 1:
 
-        return f'{count} Investigador' + 'con 0 Investigaciones'
+        filtered_data = filtered_data[filtered_data['Field'].isin(
+            [field])]
 
-    return f'{count} Investigadores ' + 'con 0 Investigaciones'
+    unique_researchers = filtered_data['Id'].unique()
+    unique_researchers = pd.DataFrame(unique_researchers, columns=['Id'])
+
+    CounthResearchs = len(unique_researchers)
+
+    CountsInvestigations = count_investigation_by_searcher(
+        unique_researchers['Id'].unique())
+    CountsInvestigations = CountsInvestigations[0].sum()
+    if CounthResearchs == 1:
+        return f'{CounthResearchs} Investigador con {CountsInvestigations} Investigación(es)'
+
+    return f'{CounthResearchs} Investigadores con {CountsInvestigations} Investigaciones'
 
 
-@app.callback(
+@ app.callback(
     Output("knowledge-area-bar-chart", "figure"),
     [Input("learning-type-dropdown", "value"),
      Input("Organization", "value"),
@@ -250,7 +257,7 @@ def update_knowledge_area_bar_chart(learning_type, selected_organization, city):
     }
 
 
-@app.callback(
+@ app.callback(
     dash.dependencies.Output("map-graph", "figure"),
     [dash.dependencies.Input("Organization", "value"), dash.dependencies.Input("city-dropdown", "value")])
 def update_map_Org(Organization, City):
@@ -260,16 +267,23 @@ def update_map_Org(Organization, City):
                                       == Organization]
     if City != "Todas":
         filtered_data = filtered_data[filtered_data['City'] == City]
+    if City == "Todas" and Organization == "Todas":
+        filtered_data = raw
+        longitude = -106.088747
+        latitude = 28.635308
+        map_zoom = 6
+    else:
+        longitude = filtered_data['Long'].unique().mean()
+        latitude = filtered_data['Lat'].unique().mean()
+        map_zoom = 8
 
-    longitude = filtered_data['Long'].mean()
-    latitude = filtered_data['Lat'].mean()
     map_filtered = get_map(filtered_data).update_layout(
-        mapbox_zoom=8, mapbox_center={"lat": latitude, "lon": longitude})
+        mapbox_zoom=map_zoom, mapbox_center={"lat": latitude, "lon": longitude})
 
     return map_filtered
 
 
-@app.callback(
+@ app.callback(
     Output(component_id='researcher-table', component_property='data'),
     [Input(component_id='map-graph', component_property='selectedData'),
      Input(component_id='learning-type-dropdown',
@@ -299,7 +313,7 @@ def update_table(selected_data, learning_type, organization, city):
     return filtered_data.to_dict('records')
 
 
-@app.callback(
+@ app.callback(
     Output("knowledge-type-pie-chart", "figure"),
     [Input("learning-type-dropdown", "value"),
      Input("Organization", "value"),
@@ -322,7 +336,7 @@ def update_knowledge_type_pie_chart(learning_type, organization, city):
     }
 
 
-@app.callback(
+@ app.callback(
     Output("download-dataframe-xlsx", "data"),
     Input("btn_xlsx", "n_clicks"),
     State("researcher-table", "data"),

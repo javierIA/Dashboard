@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -45,6 +46,7 @@ class Neo4jClient:
                 labels(o) as OrganizationType,
                 r.name as Researcher,
                 r.second_surname as Surname,
+                r.identifier as Id,
                 k.description as Knowledge,
                 labels(k) as KnowledgeType,
                 c.name as City""")
@@ -61,6 +63,29 @@ class Neo4jClient:
                 i += 1
                 rels.append({"source": 0, "target": target})
 
+            return nodes
+
+    async def get_investigation_data(self, uuid_list):
+
+        async def work(tx):
+            uuids = ','.join(f'"{uuid}"' for uuid in uuid_list)
+            query = f"""MATCH (r:Researcher)-[:PARTICIPATED_IN]->(s:ScientificPaper)
+    WHERE r.identifier IN [{uuids}]
+    RETURN COUNT(s)"""
+            result = await tx.run(query)
+            return [record_ async for record_ in result]
+
+        async with self.get_db() as db:
+            results = await db.execute_read(work)
+            nodes = []
+            rels = []
+            i = 0
+            for record in results:
+                nodes.append(record)
+                target = i
+                i += 1
+                rels.append({"source": 0, "target": target})
+                pass
             return nodes
 
     async def close(self):

@@ -294,7 +294,9 @@ def update_map_Org(Organization, City):
 def update_table(selected_data, learning_type, organization, city):
     raw.drop_duplicates(subset="Researcher", inplace=True)
     filtered_data = raw
-
+    filtered_data = filtered_data[filtered_data["Researcher"] != ""]
+    # eliminar la columna organizationtype
+    filtered_data = filtered_data.drop(columns=['OrganizationType'])
     if selected_data is not None:
         selected_points = [point['customdata']
                            for point in selected_data['points']]

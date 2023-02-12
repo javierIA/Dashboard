@@ -204,7 +204,7 @@ app.layout = html.Div(className="container-fluid ", children=[
 # Define the callback function
 
 
-@app.call   back(
+@app.callback(
     Output(component_id='researcher-count', component_property='children'),
     [Input(component_id='Organization', component_property='value'),
      Input(component_id='learning-type-dropdown', component_property='value'),

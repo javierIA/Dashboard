@@ -13,16 +13,21 @@ import dash_bootstrap_components as dbc
 import asyncio
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, meta_tags=[
-    {"name": "viewport", "content": "width=device-width, initial-scale=1"}], external_stylesheets=external_stylesheets)
+                {"name": "viewport", "content": "width=device-width, initial-scale=1"}], external_stylesheets=external_stylesheets)
 app.title = 'I2E Dashboard'
 app.config.suppress_callback_exceptions = True
-raw = covert_to_df()
-mapa = get_map(raw)
-server = app.server
-datatemp = raw[["Researcher", "Surname",
-                "Organization", "City", "Knowledge"]]
 
-datatemp = datatemp.drop_duplicates()
+
+def get_field_options(field_name):
+    field_data = get_knowledge_area_data(field_name, raw)
+    return get_options(field_data)
+
+
+raw = covert_to_df()
+server = app.server
+mapa = get_map(raw)
+datatemp = raw[["Researcher", "Surname", "Organization",
+                "City", "Knowledge"]].drop_duplicates()
 data_dict = datatemp.to_dict('records')
 
 data_table = dash_table.DataTable(
@@ -30,47 +35,28 @@ data_table = dash_table.DataTable(
     data=data_dict,
     page_size=10,
     page_action="native",
-    columns=[  # ID, Organization, City, Knowledg
-        {"name": "Nombre", "id": "Researcher"},
-        {"name": "Apellido", "id": "Surname"},
-        {"name": "Organización", "id": "Organization"},
-        {"name": "Ciudad", "id": "City"},
-        {"name": "Conocimiento", "id": "Knowledge"},
-    ],
+    columns=[{"name": "Nombre", "id": "Researcher"},
+             {"name": "Apellido", "id": "Surname"},
+             {"name": "Organización", "id": "Organization"},
+             {"name": "Ciudad", "id": "City"},
+             {"name": "Conocimiento", "id": "Knowledge"}],
     filter_action="native",
     sort_action="native",
     sort_mode="single",
     column_selectable="single",
     style_table={"fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"'},
-    style_header={
-        'backgroundColor': 'white',
-        'fontWeight': 'bold',
-        'padding': '0.75rem'
-    },
-    style_cell={
-        "fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
-        'fontWeight': '400',
-        'lineHeight': '1.5',
-        'color': '#212529',
-        'textAlign': 'left',
-        'whiteSpace': 'normal',
-        'height': 'auto',
-        'padding': '0.75rem',
-        'border': '1px solid #dee2e6',
-        'verticalAlign': 'top',
-    }
+    style_header={'backgroundColor': 'white',
+                  'fontWeight': 'bold', 'padding': '0.75rem'},
+    style_cell={"fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
+                'fontWeight': '400', 'lineHeight': '1.5', 'color': '#212529', 'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'padding': '0.75rem', 'border': '1px solid #dee2e6', 'verticalAlign': 'top'}
 )
-area = get_knowledge_area_data("Area", raw)
-discipline = get_knowledge_area_data("Disciplina", raw)
-subdiscipline = get_knowledge_area_data("Sub-disciplina", raw)
-field = get_knowledge_area_data("Campo", raw)
-subfield = get_knowledge_area_data("Sub-campo", raw)
-area_options = get_options(area)
-discipline_options = get_options(discipline)
-subdiscipline_options = get_options(subdiscipline)
-field_options = get_options(field)
-subfield_options = get_options(subfield)
-raw = raw.fillna(False, axis=1)
+
+area_options = get_field_options("Area")
+discipline_options = get_field_options("Disciplina")
+subdiscipline_options = get_field_options("Sub-disciplina")
+field_options = get_field_options("Campo")
+subfield_options = get_field_options("Sub-campo")
+
 app.layout = html.Div(className="container-fluid ", children=[
     html.Div(className="", children=[
         html.Div(className="container-fluid", children=[
@@ -80,12 +66,29 @@ app.layout = html.Div(className="container-fluid ", children=[
                     figure=mapa,
                     config=dict(displayModeBar=False, scrollZoom=True),
                     className="col-md-8 px-4",
+                    animate=True,
+                    animation_options=dict(
+                        frame=dict(duration=500, redraw=False),
+                        transition=dict(duration=500),
+                        easing="linear",
+                        fromcurrent=True,
+                        mode="immediate",
+                    ),
+
                 ),
 
                 dcc.Graph(
                     id="knowledge-area-bar-chart",
                     config=dict(displayModeBar=False, scrollZoom=True),
                     className="col-md-4 px-4",
+                    animate=True,
+                    animation_options=dict(
+                        frame=dict(duration=500, redraw=False),
+                        transition=dict(duration=500),
+                        easing="linear",
+                        fromcurrent=True,
+                        mode="immediate",
+                    ),
                 )
             ]),
             html.Div(
@@ -93,7 +96,7 @@ app.layout = html.Div(className="container-fluid ", children=[
                     html.Div(
                         className="col-md-12 text-center", children=[
                             html.Div(
-                                id='researcher-count', className="display-6 text-center"),
+                                id='researcher-count', className="display-6 text-center", style={"font-size": "2rem", "font-weight": "bold", "color": "#000000", "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
 
                         ]
                     ),
@@ -101,7 +104,8 @@ app.layout = html.Div(className="container-fluid ", children=[
             ),
             html.Div(className="row", children=[
                 html.Div(className="col-md-4", children=[
-                    html.Label("Organization", className="px-4"),
+                    html.Label("Organization", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
+                               "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
                     dcc.Dropdown(
                         id="Organization",
                         options=[{"label": Organization, "value": Organization} for Organization in raw["Organization"].unique(
@@ -111,7 +115,8 @@ app.layout = html.Div(className="container-fluid ", children=[
                     )
                 ]),
                 html.Div(className="col-md-4", children=[
-                    html.Label("Ciudad", className="px-4"),
+                    html.Label("Ciudad", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
+                               "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
                     dcc.Dropdown(
                         id="city-dropdown",
                         options=[{"label": city, "value": city}
@@ -121,7 +126,8 @@ app.layout = html.Div(className="container-fluid ", children=[
                     )
                 ]),
                 html.Div(className="col-md-4", children=[
-                    html.Label("Tipo de aprendizaje", className="px-4"),
+                    html.Label("Tipo de aprendizaje", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
+                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="learning-type-dropdown",
                         options=[{"label": learning_type, "value": learning_type} for learning_type in raw["KnowledgeType"].unique(
@@ -132,7 +138,8 @@ app.layout = html.Div(className="container-fluid ", children=[
                 ]),
 
                 html.Div(className="col-md-4", children=[
-                    html.Label("Area de conocimiento", className="px-4"),
+                    html.Label("Area de conocimiento", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
+                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="Area",
                         options=area_options,
@@ -142,7 +149,8 @@ app.layout = html.Div(className="container-fluid ", children=[
                     )
                 ]),
                 html.Div(className="col-md-4", children=[
-                    html.Label("Disciplina", className="px-4"),
+                    html.Label("Disciplina", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
+                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="Discipline",
                         options=discipline_options,
@@ -152,8 +160,7 @@ app.layout = html.Div(className="container-fluid ", children=[
                     )
                 ]),
                 html.Div(className="col-md-4", children=[
-                    html.Label("Campo", className="px-4"),
-                    dcc.Dropdown(
+                    html.Label("Campo", className="px-4", style={"font-size": "1.2rem", "color": "#000000", 'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),                    dcc.Dropdown(
                         id="Field",
                         multi=True,
                         options=field_options,
@@ -176,6 +183,16 @@ app.layout = html.Div(className="container-fluid ", children=[
                         id="knowledge-type-pie-chart",
                         config=dict(displayModeBar=False, scrollZoom=True),
                         className="col-md-12 px-4",
+                        animate=True,
+                        animation_options=dict(
+                            frame=dict(duration=500, redraw=False),
+                            transition=dict(duration=300),
+                            easing="linear",
+                            fromcurrent=True,
+                            mode="immediate"
+                        ),
+
+
                     )
                 ]),
             ])
@@ -187,11 +204,10 @@ app.layout = html.Div(className="container-fluid ", children=[
 # Define the callback function
 
 
-@app.callback(
+@app.call   back(
     Output(component_id='researcher-count', component_property='children'),
     [Input(component_id='Organization', component_property='value'),
-     Input(component_id='learning-type-dropdown',
-           component_property='value'),
+     Input(component_id='learning-type-dropdown', component_property='value'),
      Input(component_id='city-dropdown', component_property='value'),
      Input(component_id='Area', component_property='value'),
      Input(component_id='Discipline', component_property='value'),
@@ -200,38 +216,40 @@ app.layout = html.Div(className="container-fluid ", children=[
 )
 def update_researcher_count(selected_organization, learning_type, city, area, discipline, field):
     filtered_data = raw
+
     if selected_organization != 'Todas':
         filtered_data = filtered_data[filtered_data['Organization'].isin(
             [selected_organization])]
+
     if learning_type != 'Todas':
         filtered_data = filtered_data[filtered_data['KnowledgeType'].isin(
             [learning_type])]
+
     if city != 'Todas':
         filtered_data = filtered_data[filtered_data['City'].isin(
             [city])]
-    if area != 'Todas':
-        filtered_data = filtered_data[filtered_data['Area'].isin(
-            [area])]
-    if discipline != 'Todas':
-        filtered_data = filtered_data[filtered_data['Discipline'].isin(
-            [discipline])]
-    if field != 'Todas':
 
-        filtered_data = filtered_data[filtered_data['Knowledge'].isin(
-            [field])]
+    if area and 'Todas' not in area:
+        filtered_data = filtered_data[filtered_data['Area'].isin(area)]
+
+    if discipline and 'Todas' not in discipline:
+        filtered_data = filtered_data[filtered_data['Disciplina'].isin(
+            discipline)]
+
+    if field and 'Todas' not in field:
+        filtered_data = filtered_data[filtered_data['Knowledge'].isin(field)]
 
     unique_researchers = filtered_data['Id'].unique()
     unique_researchers = pd.DataFrame(unique_researchers, columns=['Id'])
 
-    CounthResearchs = len(unique_researchers)
+    count_researchers = len(unique_researchers)
+    count_investigations = count_investigation_by_searcher(
+        unique_researchers['Id'].unique())[0].sum()
 
-    CountsInvestigations = count_investigation_by_searcher(
-        unique_researchers['Id'].unique())
-    CountsInvestigations = CountsInvestigations[0].sum()
-    if CounthResearchs == 1:
-        return f'{CounthResearchs} Investigador con {CountsInvestigations} Investigación(es)'
+    if count_researchers == 1:
+        return f'{count_researchers} Investigador con {count_investigations} Investigación(es)'
 
-    return f'{CounthResearchs} Investigadores con {CountsInvestigations} Investigaciones'
+    return f'{count_researchers} Investigadores con {count_investigations} Investigaciones'
 
 
 @ app.callback(

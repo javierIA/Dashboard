@@ -14,6 +14,3 @@ services:
     depends_on:
       - neo4j
     restart: unless-stopped
-    networks:
-      - neo4j_net
-  

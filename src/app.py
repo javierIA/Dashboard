@@ -57,39 +57,42 @@ subdiscipline_options = get_field_options("Sub-disciplina")
 field_options = get_field_options("Campo")
 subfield_options = get_field_options("Sub-campo")
 
-app.layout = html.Div(className="container-fluid ", children=[
+app.layout = html.Div(className="container-fluid ", style={'backgroundColor': '#f5f7ff'},
+                      children=[
     html.Div(className="", children=[
         html.Div(className="container-fluid", children=[
             html.Div(className="row", children=[
-                dcc.Graph(
-                    id="map-graph",
-                    figure=mapa,
-                    config=dict(displayModeBar=False, scrollZoom=True),
-                    className="col-md-8 px-4",
-                    animate=True,
-                    animation_options=dict(
-                        frame=dict(duration=500, redraw=False),
-                        transition=dict(duration=500),
-                        easing="linear",
-                        fromcurrent=True,
-                        mode="immediate",
-                    ),
+                                dcc.Graph(
+                                    id="map-graph",
+                                    figure=mapa,
+                                    config=dict(
+                                        displayModeBar=False, scrollZoom=True),
+                                    className="col-md-8 px-4",
+                                    animate=True,
+                                    animation_options=dict(
+                                        frame=dict(duration=500, redraw=False),
+                                        transition=dict(duration=500),
+                                        easing="linear",
+                                        fromcurrent=True,
+                                        mode="immediate",
+                                    ),
 
-                ),
+                                ),
 
                 dcc.Graph(
-                    id="knowledge-area-bar-chart",
-                    config=dict(displayModeBar=False, scrollZoom=True),
-                    className="col-md-4 px-4",
-                    animate=True,
-                    animation_options=dict(
-                        frame=dict(duration=500, redraw=False),
-                        transition=dict(duration=500),
-                        easing="linear",
-                        fromcurrent=True,
-                        mode="immediate",
-                    ),
-                )
+                                    id="knowledge-area-bar-chart",
+                                    config=dict(
+                                        displayModeBar=False, scrollZoom=True),
+                                    className="col-md-4 px-4",
+                                    animate=True,
+                                    animation_options=dict(
+                                        frame=dict(duration=500, redraw=False),
+                                        transition=dict(duration=500),
+                                        easing="linear",
+                                        fromcurrent=True,
+                                        mode="immediate",
+                                    ),
+                                )
             ]),
             html.Div(
                 className="row", children=[
@@ -105,7 +108,7 @@ app.layout = html.Div(className="container-fluid ", children=[
             html.Div(className="row", children=[
                 html.Div(className="col-md-4", children=[
                     html.Label("Organization", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                               "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
+                                                                        "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
                     dcc.Dropdown(
                         id="Organization",
                         options=[{"label": Organization, "value": Organization} for Organization in raw["Organization"].unique(
@@ -116,7 +119,7 @@ app.layout = html.Div(className="container-fluid ", children=[
                 ]),
                 html.Div(className="col-md-4", children=[
                     html.Label("Ciudad", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                               "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
+                                                                  "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
                     dcc.Dropdown(
                         id="city-dropdown",
                         options=[{"label": city, "value": city}
@@ -127,7 +130,7 @@ app.layout = html.Div(className="container-fluid ", children=[
                 ]),
                 html.Div(className="col-md-4", children=[
                     html.Label("Tipo de aprendizaje", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
+                                                                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="learning-type-dropdown",
                         options=[{"label": learning_type, "value": learning_type} for learning_type in raw["KnowledgeType"].unique(
@@ -139,7 +142,7 @@ app.layout = html.Div(className="container-fluid ", children=[
 
                 html.Div(className="col-md-4", children=[
                     html.Label("Area de conocimiento", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
+                                                                                'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="Area",
                         options=area_options,
@@ -150,7 +153,7 @@ app.layout = html.Div(className="container-fluid ", children=[
                 ]),
                 html.Div(className="col-md-4", children=[
                     html.Label("Disciplina", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
+                                                                      'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="Discipline",
                         options=discipline_options,

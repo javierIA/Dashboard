@@ -11,4 +11,3 @@ services:
     environment:
       - PORT=8080
     command: gunicorn --workers=5 --threads=1 -b 0.0.0.0:8080 app:server
-    restart: unless-stopped 

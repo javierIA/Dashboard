@@ -5,10 +5,10 @@ services:
     hostname: dash
     build: .
     ports:
-      - "80:80"
+      - "8080:8080"
     volumes:
       - ./src:/wd/src
     environment:
-      - PORT=80
-    command: gunicorn --workers=5 --threads=1 -b 0.0.0.0:80 app:server
+      - PORT=8080
+    command: gunicorn --workers=5 --threads=1 -b 0.0.0.0:8080 app:server
     restart: unless-stopped 

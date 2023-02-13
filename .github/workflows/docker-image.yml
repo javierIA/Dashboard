@@ -10,20 +10,6 @@ jobs:
     runs-on: self-hosted
     steps:
         - uses: actions/checkout@v2
-        - name: Install Docker Compose
-          run: |
-            sudo curl -L "https://github.com/docker/compose/releases/download/v2.15.0/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
-            sudo echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
-            source ~/.bashrc
-            sudo chmod +x /usr/local/bin/docker-compose
-        - name: Run Init Script
-          run: |
-            docker run --interactive --tty --rm --volume=$(pwd)/neo4j/data:/data  --volume=$(pwd)/neo4j/backups:/backups  neo4j/neo4j-admin:5.4.0 neo4j-admin database load neo4j --from-path=/backups --overwrite-destination
-
-        - name: Fix Path
-          run: |
-            sudo echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
-            source ~/.bashrc
         - name: Build 
           run: 
             docker-compose build 

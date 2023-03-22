@@ -6,12 +6,13 @@ from dash import dcc
 import pandas as pd
 import plotly.graph_objects as go
 from tools.components.maps import get_map
-from utils import covert_to_df, get_knowledge_area_data, get_options, count_investigation_by_searcher
+from utils import covert_to_df, get_knowledge_area_data, get_options, count_investigation_by_searcher,get_researchersdb
 from dash import dash_table
 import urllib
 import dash_bootstrap_components as dbc
 import asyncio
-external_stylesheets = [dbc.themes.BOOTSTRAP]
+from dash import dcc
+external_stylesheets = [dbc.themes.BOOTSTRAP,'https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, meta_tags=[
                 {"name": "viewport", "content": "width=device-width, initial-scale=1"}], external_stylesheets=external_stylesheets)
 app.title = 'I2E Dashboard'
@@ -23,11 +24,10 @@ def get_field_options(field_name):
     return get_options(field_data)
 
 
-raw = covert_to_df()
+researcersdb = get_researchersdb()
 server = app.server
-mapa = get_map(raw)
-datatemp = raw[["Researcher", "Surname", "Organization",
-                "City", "Knowledge"]].drop_duplicates()
+mapa = get_map(researcersdb)
+datatemp = researcersdb
 data_dict = datatemp.to_dict('records')
 
 data_table = dash_table.DataTable(
@@ -51,23 +51,21 @@ data_table = dash_table.DataTable(
                 'fontWeight': '400', 'lineHeight': '1.5', 'color': '#212529', 'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'padding': '0.75rem', 'border': '1px solid #dee2e6', 'verticalAlign': 'top'}
 )
 
-area_options = get_field_options("Area")
-discipline_options = get_field_options("Disciplina")
-subdiscipline_options = get_field_options("Sub-disciplina")
-field_options = get_field_options("Campo")
-subfield_options = get_field_options("Sub-campo")
 
 app.layout = html.Div(className="container-fluid ", style={'backgroundColor': '#f5f7ff'},
                       children=[
     html.Div(className="", children=[
+     dcc.Tabs( id="tabs", value='tab-1', children=[
+        dcc.Tab(label='Organizaciones', children=[
         html.Div(className="container-fluid", children=[
             html.Div(className="row", children=[
+    
                                 dcc.Graph(
                                     id="map-graph",
                                     figure=mapa,
                                     config=dict(
                                         displayModeBar=False, scrollZoom=True),
-                                    className="col-md-8 px-4",
+                                    className="col-md-8 px-1  z-depth-1 z-index-n1",
                                     animate=True,
                                     animation_options=dict(
                                         frame=dict(duration=500, redraw=False),
@@ -83,7 +81,7 @@ app.layout = html.Div(className="container-fluid ", style={'backgroundColor': '#
                                     id="knowledge-area-bar-chart",
                                     config=dict(
                                         displayModeBar=False, scrollZoom=True),
-                                    className="col-md-4 px-4",
+                                    className="col-md-4 px-1  z-depth-1 z-index-n1",
                                     animate=True,
                                     animation_options=dict(
                                         frame=dict(duration=500, redraw=False),
@@ -141,7 +139,7 @@ app.layout = html.Div(className="container-fluid ", style={'backgroundColor': '#
                 ]),
 
                 html.Div(className="col-md-4", children=[
-                    html.Label("Area de conocimiento", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
+                    html.Label("Area de co/nocimiento", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
                                                                                 'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
                     dcc.Dropdown(
                         id="Area",
@@ -200,7 +198,11 @@ app.layout = html.Div(className="container-fluid ", style={'backgroundColor': '#
                 ]),
             ])
 
+
         ])
+        ])
+        ])
+
     ])
 ])
 
@@ -359,7 +361,7 @@ def update_knowledge_type_pie_chart(learning_type, organization, city):
     }
 
 
-@ app.callback(
+@ app.callback( 
     Output("download-dataframe-xlsx", "data"),
     Input("btn_xlsx", "n_clicks"),
     State("researcher-table", "data"),

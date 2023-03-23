@@ -6,362 +6,125 @@ from dash import dcc
 import pandas as pd
 import plotly.graph_objects as go
 from tools.components.maps import get_map
-from utils import covert_to_df, get_knowledge_area_data, get_options, count_investigation_by_searcher,get_researchersdb
-from dash import dash_table
+from tools.components.table import get_table
+from tools.components.graph import get_graph
+from tools.components.tabs import get_filters, get_knowledge_filter
+from utils import (
+    get_researchers_db,
+    get_papers_db,
+    get_institutions_db,
+    get_area_db,
+    get_field_db,
+    get_discipline_db,
+)
 import urllib
 import dash_bootstrap_components as dbc
 import asyncio
-from dash import dcc
-external_stylesheets = [dbc.themes.BOOTSTRAP,'https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, meta_tags=[
-                {"name": "viewport", "content": "width=device-width, initial-scale=1"}], external_stylesheets=external_stylesheets)
-app.title = 'I2E Dashboard'
+import colorlover as cl
+external_stylesheets = [
+    dbc.themes.COSMO,
+]
+app = dash.Dash(
+    __name__,
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+    external_stylesheets=external_stylesheets,
+)
+app.title = "I2E Dashboard"
 app.config.suppress_callback_exceptions = True
 
+# Get the data
+researchers = get_researchers_db()
+institutions = get_institutions_db()
+papers = get_papers_db()
+areas = get_area_db()
 
-def get_field_options(field_name):
-    field_data = get_knowledge_area_data(field_name, raw)
-    return get_options(field_data)
-
-
-researcersdb = get_researchersdb()
 server = app.server
-mapa = get_map(researcersdb)
-datatemp = researcersdb
-data_dict = datatemp.to_dict('records')
+print("Server created")
+app.layout = dbc.Container(
+    fluid=True,
+    style={"backgroundColor": "#f5f7ff"},
+    children=[
+        dbc.Row(
+            children=[
+                dbc.Col(
+                    children=[
+                        get_filters(institutions),
+                        html.Br(),
+                        get_knowledge_filter(areas),
+                                    html.Br(),
 
-data_table = dash_table.DataTable(
-    id='researcher-table',
-    data=data_dict,
-    page_size=10,
-    page_action="native",
-    columns=[{"name": "Nombre", "id": "Researcher"},
-             {"name": "Apellido", "id": "Surname"},
-             {"name": "Organización", "id": "Organization"},
-             {"name": "Ciudad", "id": "City"},
-             {"name": "Conocimiento", "id": "Knowledge"}],
-    filter_action="native",
-    sort_action="native",
-    sort_mode="single",
-    column_selectable="single",
-    style_table={"fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"'},
-    style_header={'backgroundColor': 'white',
-                  'fontWeight': 'bold', 'padding': '0.75rem'},
-    style_cell={"fontFamily": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
-                'fontWeight': '400', 'lineHeight': '1.5', 'color': '#212529', 'textAlign': 'left', 'whiteSpace': 'normal', 'height': 'auto', 'padding': '0.75rem', 'border': '1px solid #dee2e6', 'verticalAlign': 'top'}
-)
-
-
-app.layout = html.Div(className="container-fluid ", style={'backgroundColor': '#f5f7ff'},
-                      children=[
-    html.Div(className="", children=[
-     dcc.Tabs( id="tabs", value='tab-1', children=[
-        dcc.Tab(label='Organizaciones', children=[
-        html.Div(className="container-fluid", children=[
-            html.Div(className="row", children=[
-    
-                                dcc.Graph(
-                                    id="map-graph",
-                                    figure=mapa,
-                                    config=dict(
-                                        displayModeBar=False, scrollZoom=True),
-                                    className="col-md-8 px-1  z-depth-1 z-index-n1",
-                                    animate=True,
-                                    animation_options=dict(
-                                        frame=dict(duration=500, redraw=False),
-                                        transition=dict(duration=500),
-                                        easing="linear",
-                                        fromcurrent=True,
-                                        mode="immediate",
-                                    ),
-
-                                ),
-
-                dcc.Graph(
-                                    id="knowledge-area-bar-chart",
-                                    config=dict(
-                                        displayModeBar=False, scrollZoom=True),
-                                    className="col-md-4 px-1  z-depth-1 z-index-n1",
-                                    animate=True,
-                                    animation_options=dict(
-                                        frame=dict(duration=500, redraw=False),
-                                        transition=dict(duration=500),
-                                        easing="linear",
-                                        fromcurrent=True,
-                                        mode="immediate",
-                                    ),
-                                )
-            ]),
-            html.Div(
-                className="row", children=[
-                    html.Div(
-                        className="col-md-12 text-center", children=[
-                            html.Div(
-                                id='researcher-count', className="display-6 text-center", style={"font-size": "2rem", "font-weight": "bold", "color": "#000000", "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
-
-                        ]
-                    ),
-                ]
-            ),
-            html.Div(className="row", children=[
-                html.Div(className="col-md-4", children=[
-                    html.Label("Organization", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                                                                        "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
-                    dcc.Dropdown(
-                        id="Organization",
-                        options=[{"label": Organization, "value": Organization} for Organization in raw["Organization"].unique(
-                        ).tolist() + ["Todas"] if Organization != "Organization"],
-                        value="Todas",
-                        className="form-control px-4"
-                    )
-                ]),
-                html.Div(className="col-md-4", children=[
-                    html.Label("Ciudad", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                                                                  "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}),
-                    dcc.Dropdown(
-                        id="city-dropdown",
-                        options=[{"label": city, "value": city}
-                                 for city in raw["City"].unique().tolist() + ["Todas"] if city != "City"],
-                        value="Todas",
-                        className="form-control px-4"
-                    )
-                ]),
-                html.Div(className="col-md-4", children=[
-                    html.Label("Tipo de aprendizaje", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                                                                               'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
-                    dcc.Dropdown(
-                        id="learning-type-dropdown",
-                        options=[{"label": learning_type, "value": learning_type} for learning_type in raw["KnowledgeType"].unique(
-                        ).tolist() + ["Todas"] if learning_type != "KnowledgeDiscipline"],
-                        value="Todas",
-                        className="form-control px-4"
-                    )
-                ]),
-
-                html.Div(className="col-md-4", children=[
-                    html.Label("Area de co/nocimiento", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                                                                                'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
-                    dcc.Dropdown(
-                        id="Area",
-                        options=area_options,
-                        value="Todas",
-                        multi=True,
-                        className="form-control px-4"
-                    )
-                ]),
-                html.Div(className="col-md-4", children=[
-                    html.Label("Disciplina", className="px-4", style={"font-size": "1.2rem", "color": "#000000",
-                                                                      'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),
-                    dcc.Dropdown(
-                        id="Discipline",
-                        options=discipline_options,
-                        value="Todas",
-                        multi=True,
-                        className="form-control px-4"
-                    )
-                ]),
-                html.Div(className="col-md-4", children=[
-                    html.Label("Campo", className="px-4", style={"font-size": "1.2rem", "color": "#000000", 'font-family': 'apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji'}),                    dcc.Dropdown(
-                        id="Field",
-                        multi=True,
-                        options=field_options,
-                        value="Todas",
-                        className="form-control px-4"
-                    )
-                ]),
-            ]),
-            html.Div(className="row", children=[
-                html.Div(className="col-md-6", children=[
-                    data_table,
-                    html.Br(),
-                    html.Button("Descargar tabla", id="btn_xlsx",
-                                className="btn btn-primary btn-lg"),
-                    dcc.Download(id="download-dataframe-xlsx"),
-                ]),
-                html.Div(className="col-md-6", children=[
-                    html.Label("Tipos de conocimiento"),
+                    ],
+                    lg=12,
+                    md=12,
+                    sm=12,
+                ),
+            ],
+        ),
+        dbc.Row(
+            children=[
+                dbc.Col(
+                    children=[
+                        get_graph(papers),
+                        html.Br(),
+                    ],
+                    lg=4,
+                    md=6,
+                    sm=12,
+                ),
+                dbc.Col(    
+                    children=[
+                    
                     dcc.Graph(
-                        id="knowledge-type-pie-chart",
+                        id="map-graph",
                         config=dict(displayModeBar=False, scrollZoom=True),
-                        className="col-md-12 px-4",
                         animate=True,
+                        figure=get_map(researchers, institutions),
                         animation_options=dict(
                             frame=dict(duration=500, redraw=False),
-                            transition=dict(duration=300),
+                            transition=dict(duration=500),
                             easing="linear",
                             fromcurrent=True,
-                            mode="immediate"
+                            mode="immediate",
                         ),
+                    ),
+                    html.Div(
+                                id='researcher-count', className="display-6 text-center", style={"font-size": "2rem", "font-weight": "bold", "color": "#000000", "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}
+                            ),
 
+                    
+                    ],
+                    lg=8,
+                    md=6,
+                    sm=12,
+                ),
+            ],
+        ),
+        dbc.Row(
+            children=[
+                dbc.Col(
+                    children=[
+                        dbc.Label("Investigadores"),
+                        get_table(researchers),
+                        html.Br(),
+                        dbc.Button(
+                            "Descargar tabla",
+                            id="btn_xlsx",
+                            className="btn btn-primary btn-lg",
+                        ),
+                        dcc.Download(id="download-dataframe-xlsx"),
+                    ],
+                    lg=9,
+                    md=6,
+                    sm=12,
+                ),
+            ],
+        ),
+    ],
+)
 
-                    )
-                ]),
-            ])
-
-
-        ])
-        ])
-        ])
-
-    ])
-])
 
 # Define the callback function
-
-
 @app.callback(
-    Output(component_id='researcher-count', component_property='children'),
-    [Input(component_id='Organization', component_property='value'),
-     Input(component_id='learning-type-dropdown', component_property='value'),
-     Input(component_id='city-dropdown', component_property='value'),
-     Input(component_id='Area', component_property='value'),
-     Input(component_id='Discipline', component_property='value'),
-     Input(component_id='Field', component_property='value')
-     ]
-)
-def update_researcher_count(selected_organization, learning_type, city, area, discipline, field):
-    filtered_data = raw
-
-    if selected_organization != 'Todas':
-        filtered_data = filtered_data[filtered_data['Organization'].isin(
-            [selected_organization])]
-
-    if learning_type != 'Todas':
-        filtered_data = filtered_data[filtered_data['KnowledgeType'].isin(
-            [learning_type])]
-
-    if city != 'Todas':
-        filtered_data = filtered_data[filtered_data['City'].isin(
-            [city])]
-
-    if area and 'Todas' not in area:
-        filtered_data = filtered_data[filtered_data['Area'].isin(area)]
-
-    if discipline and 'Todas' not in discipline:
-        filtered_data = filtered_data[filtered_data['Disciplina'].isin(
-            discipline)]
-
-    if field and 'Todas' not in field:
-        filtered_data = filtered_data[filtered_data['Knowledge'].isin(field)]
-
-    unique_researchers = filtered_data['Id'].unique()
-    unique_researchers = pd.DataFrame(unique_researchers, columns=['Id'])
-
-    count_researchers = len(unique_researchers)
-    count_investigations = count_investigation_by_searcher(
-        unique_researchers['Id'].unique())[0].sum()
-
-    if count_researchers == 1:
-        return f'{count_researchers} Investigador con {count_investigations} Investigación(es)'
-
-    return f'{count_researchers} Investigadores con {count_investigations} Investigaciones'
-
-
-@ app.callback(
-    Output("knowledge-area-bar-chart", "figure"),
-    [Input("learning-type-dropdown", "value"),
-     Input("Organization", "value"),
-     Input("city-dropdown", "value")])
-def update_knowledge_area_bar_chart(learning_type, selected_organization, city):
-    filtered_data = raw
-    if selected_organization != 'Todas':
-        filtered_data = filtered_data[filtered_data['Organization']
-                                      == selected_organization]
-    if learning_type != 'Todas':
-        filtered_data = filtered_data[filtered_data['KnowledgeType']
-                                      == learning_type]
-    if city != 'Todas':
-        filtered_data = filtered_data[filtered_data['City'] == city]
-
-    count_df = filtered_data['Knowledge'].value_counts()
-    return {
-        "data": [go.Bar(x=count_df.index, y=count_df.values)],
-        "layout": go.Layout(title="Áreas de Conocimiento", xaxis={"title": "Área de Conocimiento"}, yaxis={"title": "Número de Investigadores Únicos"}, template="seaborn")
-    }
-
-
-@ app.callback(
-    dash.dependencies.Output("map-graph", "figure"),
-    [dash.dependencies.Input("Organization", "value"), dash.dependencies.Input("city-dropdown", "value")])
-def update_map_Org(Organization, City):
-    filtered_data = raw
-    if Organization != "Todas":
-        filtered_data = filtered_data[filtered_data['Organization']
-                                      == Organization]
-    if City != "Todas":
-        filtered_data = filtered_data[filtered_data['City'] == City]
-    if City == "Todas" and Organization == "Todas":
-        filtered_data = raw
-        longitude = -106.088747
-        latitude = 28.635308
-        map_zoom = 6
-    else:
-        longitude = filtered_data['Long'].unique().mean()
-        latitude = filtered_data['Lat'].unique().mean()
-        map_zoom = 8
-
-    map_filtered = get_map(filtered_data).update_layout(
-        mapbox_zoom=map_zoom, mapbox_center={"lat": latitude, "lon": longitude})
-
-    return map_filtered
-
-
-@ app.callback(
-    Output(component_id='researcher-table', component_property='data'),
-    [Input(component_id='map-graph', component_property='selectedData'),
-     Input(component_id='learning-type-dropdown',
-           component_property='value'),
-     Input(component_id='Organization', component_property='value'),
-     Input(component_id='city-dropdown', component_property='value')]
-)
-def update_table(selected_data, learning_type, organization, city):
-    raw.drop_duplicates(subset="Researcher", inplace=True)
-    filtered_data = raw
-    filtered_data = filtered_data[filtered_data["Researcher"] != ""]
-    # eliminar la columna organizationtype
-    filtered_data = filtered_data.drop(columns=['OrganizationType'])
-    if selected_data is not None:
-        selected_points = [point['customdata']
-                           for point in selected_data['points']]
-        filtered_data = filtered_data[filtered_data["Organization"].isin(
-            selected_points)]
-    if learning_type != "Todas":
-
-        filtered_data = filtered_data[filtered_data["KnowledgeType"]
-                                      == learning_type]
-    if organization != "Todas":
-        filtered_data = filtered_data[filtered_data["Organization"]
-                                      == organization]
-    if city != "Todas":
-        filtered_data = filtered_data[filtered_data["City"] == city]
-
-    return filtered_data.to_dict('records')
-
-
-@ app.callback(
-    Output("knowledge-type-pie-chart", "figure"),
-    [Input("learning-type-dropdown", "value"),
-     Input("Organization", "value"),
-     Input("city-dropdown", "value"),
-     ])
-def update_knowledge_type_pie_chart(learning_type, organization, city):
-    filtered_data = raw
-    if learning_type != "Todas":
-        filtered_data = filtered_data[filtered_data["KnowledgeType"]
-                                      == learning_type]
-    if organization != "Todas":
-        filtered_data = filtered_data[filtered_data["Organization"]
-                                      == organization]
-    if city != "Todas":
-        filtered_data = filtered_data[filtered_data["City"] == city]
-    df = filtered_data.groupby("Knowledge")["Researcher"].count()
-    return {
-        "data": [go.Pie(labels=df.index, values=df.values)],
-        "layout": go.Layout(title="Tipos de Conocimiento", template="seaborn")
-    }
-
-
-@ app.callback( 
     Output("download-dataframe-xlsx", "data"),
     Input("btn_xlsx", "n_clicks"),
     State("researcher-table", "data"),
@@ -369,9 +132,189 @@ def update_knowledge_type_pie_chart(learning_type, organization, city):
 )
 def func(n_clicks, data):
     data = pd.DataFrame(data)
-
     return dcc.send_data_frame(data.to_excel, "Dash.xlsx")
 
 
-if __name__ == '__main__':
+@app.callback(
+    Output("map-graph", "figure"),
+    Input("institution", "value"),
+    prevent_initial_call=True,
+)
+def update_map(institution):
+    if institution is None or institution == "Todas":
+        mapUpdate = get_map(researchers, institutions)
+        zoom = 5
+    else:
+        Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
+        Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
+        zoom = 10
+        mapUpdate = get_map(researchers, institutions)
+        mapUpdate.update_layout(
+            mapbox_center={"lat": Lat, "lon": Long},
+            mapbox_zoom=zoom,
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            uirevision=True,  # Agregar esta línea
+        )
+        mapUpdate.update(layout=dict(uirevision=True))
+    return mapUpdate
+
+@app.callback(
+    Output("field", "options"),
+    Input("area", "value"),
+    prevent_initial_call=True,
+)
+def update_field(areas):
+    if areas is None or areas == "Todas":
+        return []
+    else:
+        fields = get_field_db()
+        fields_df = pd.DataFrame(fields)
+        for area in areas:
+            filtered_fields = fields_df.loc[fields_df["Area"] == area]
+            options = filtered_fields[["Nombre", "Id"]].to_dict("records")
+
+        return [
+            {"label": option["Nombre"], "value": option["Id"]} for option in options
+        ]
+
+@app.callback(Output("discipline", "options"), Input("field", "value"))
+def update_discipline(fields):
+    if fields is None or fields == "Todas":
+        return []
+    else:
+        for field in fields:
+            disciplines = get_discipline_db()
+            disciplines_df = pd.DataFrame(disciplines)
+            filtered_disciplines = disciplines_df.loc[disciplines_df["Campo"] == field]
+            options = filtered_disciplines[["Nombre", "Id"]].to_dict("records")
+            return [
+                {"label": option["Nombre"], "value": option["Id"]} for option in options
+            ]
+
+@app.callback(
+    Output("researcher-table", "data"),
+    Input("area", "value"),
+    Input("area", "options"),
+    Input("field", "value"),
+    Input("field", "options"),
+    Input("discipline", "value"),
+    Input("discipline", "options"),
+    Input("institution", "value"),
+    Input("city", "value"),
+    prevent_initial_call=True,
+)
+def update_table(area,area_label, field,field_label,discipline,discipline_label,institution,city):
+    area = [] if area is None or area == "Todas" else area
+    field = [] if field is None or "Todas" in field else field
+    discipline = [] if discipline is None or "Todas" in discipline else discipline
+    institution = "" if institution is None or institution == "Todas" else institution
+    city = "" if city is None or city == "Todas" else city
+    selected_areas = [option["label"] for option in area_label if option["value"] in area]
+    selected_fields = [option["label"] for option in field_label if option["value"] in field]
+    selected_disciplines = [option["label"] for option in discipline_label if option["value"] in discipline]
+    print(selected_areas)
+    print(selected_fields)
+    print(selected_disciplines)
+    print(institution)
+    print(city)
+    # Filter the data   
+    filtered_researchers = researchers
+    if len(area) > 0:
+        filtered_researchers = filtered_researchers[filtered_researchers["Área"].isin(selected_areas)]
+    if len(field) > 0:
+        filtered_researchers = filtered_researchers[filtered_researchers["Campos"].isin(selected_fields)]
+    if len(discipline) > 0:
+        filtered_researchers = filtered_researchers[filtered_researchers["Disciplinas"].isin(selected_disciplines)]
+    if institution != "":
+        filtered_researchers = filtered_researchers[filtered_researchers["Institución"] == institution]
+    if city != "":
+        filtered_researchers = filtered_researchers[filtered_researchers["Ciudad"] == city]
+
+    # Return the filtered data in the expected format
+    return filtered_researchers.to_dict("records")
+
+@app.callback(
+    Output("researcher-count", "children"),
+    Input("area", "value"),
+    Input("area", "options"),
+    Input("field", "value"),
+    Input("field", "options"),
+    Input("discipline", "value"),
+    Input("discipline", "options"),
+    Input("institution", "value"),
+    Input("city", "value"),
+    prevent_initial_call=True,
+)
+def update_count(area,area_label, field,field_label,discipline,discipline_label,institution,city):
+    area = [] if area is None or area == "Todas" else area
+    field = [] if field is None or "Todas" in field else field
+    discipline = [] if discipline is None or "Todas" in discipline else discipline
+    institution = "" if institution is None or institution == "Todas" else institution
+    selected_areas = [option["label"] for option in area_label if option["value"] in area]
+    selected_fields = [option["label"] for option in field_label if option["value"] in field]
+    selected_disciplines = [option["label"] for option in discipline_label if option["value"] in discipline]
+    city = "" if city is None or city == "Todas" else city
+    # Filter the data   
+    filtered_researchers = researchers
+    if len(area) > 0:
+        filtered_researchers = filtered_researchers[filtered_researchers["Área"].isin(selected_areas)]
+    if len(field) > 0:
+        filtered_researchers = filtered_researchers[filtered_researchers["Campos"].isin(selected_fields)]
+    if len(discipline) > 0:
+        filtered_researchers = filtered_researchers[filtered_researchers["Disciplinas"].isin(selected_disciplines)]
+    if institution != "":
+        filtered_researchers = filtered_researchers[filtered_researchers["Institución"] == institution]
+    if city != "":
+        filtered_researchers = filtered_researchers[filtered_researchers["Ciudad"] == city]
+
+    # Return the filtered data in the expected format
+    return "Total de investigadores: " + str(len(filtered_researchers))
+
+@app.callback(
+    Output("graph_papers", "figure"),
+    Input("area", "value"),
+    Input("field", "value"),
+    Input("discipline", "value"))
+def update_graph_papers(area, field, discipline):
+    area = [] if area is None or area == "Todas" else area
+    field = [] if field is None or "Todas" in field else field
+    discipline = [] if discipline is None or "Todas" in discipline else discipline
+    # Filter the data   
+    papers = get_papers_db()
+    papers_df = pd.DataFrame(papers)
+    if len(area) > 0:
+        papers_df = papers_df[papers_df["Area"].isin(area)]
+    if len(field) > 0:
+        papers_df = papers_df[papers_df["Campo"].isin(field)]
+    if len(discipline) > 0:
+        papers_df = papers_df[papers_df["Disciplina"].isin(discipline)]
+    type_count_map = {
+        "ScientificPaper": 0,
+        "ResearchProject": 1,
+        "ResearchGroup": 2,
+        "Patent": 3,
+    }
+    type_labels = (
+        "Artículo científico",
+        "Proyecto de investigación",
+        "Grupo de investigación",
+        "Patente",
+    )
+    counts = papers_df.groupby("Tipo").size().reindex(type_count_map.keys()).tolist()
+    colors = cl.scales["9"]["qual"]["Paired"]
+    colors = cl.interp(colors, len(type_labels))
+
+    bar_data = [go.Bar(x=type_labels, y=counts, marker=dict(color=colors))]
+    layout = go.Layout(
+        xaxis=dict(title="Tipo"),
+        yaxis=dict(title="Cantidad"),
+        plot_bgcolor="rgba(0, 0, 0, 0)",
+        paper_bgcolor="rgba(0, 0, 0, 0)",
+        font=dict(color="black"),
+    )
+    return go.Figure(data=bar_data, layout=layout)
+
+    
+
+if __name__ == "__main__":
     app.run_server(host="0.0.0.0", port=8020, debug=True)

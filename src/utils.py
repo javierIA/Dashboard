@@ -6,7 +6,6 @@ import asyncio
 
 def get_dash():
     db = neo4j.Neo4jClient()
-
     custom = asyncio.run(db.get_dashboard())
 
     return custom

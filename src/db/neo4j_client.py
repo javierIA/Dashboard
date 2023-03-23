@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from dotenv import load_dotenv
 from neo4j import (
     basic_auth,
     AsyncGraphDatabase,
@@ -12,13 +11,11 @@ import os
 class Neo4jClient:
     def __init__(self):
 
-        load_dotenv()
-
         self.url = os.getenv("URL")
         self.username = os.getenv("USERNAME")
         self.password = os.getenv("PASSWORD")
-        self.database = os.getenv("DATABASE")
-        self.neo4j_version = os.getenv("NEO4J_VERSION")
+        self.database = os.getenv("DATABASE", "neo4j")
+        self.neo4j_version = os.getenv("NEO4J_VERSION", "5.3")
         self.driver = AsyncGraphDatabase.driver(
             self.url, auth=basic_auth(self.username, self.password))
         self.logger = logging.getLogger(__name__)

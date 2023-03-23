@@ -3,6 +3,9 @@ import plotly.graph_objs as go
 from dash import dcc
 from dash import html
 import colorlover as cl
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
 
 def get_graph(data):
@@ -38,3 +41,43 @@ def get_graph(data):
     )
 
     return dcc.Graph(id="graph_papers", figure={"data": bar_data, "layout": layout})
+
+
+def transform_data(data):
+    df = pd.DataFrame(data)
+    grouped = df.groupby("Área")
+    transformed = pd.DataFrame(
+        {
+            "Área": grouped.mean().index,
+            "X": grouped.mean()["X"],
+            "Y": grouped.mean()["Y"],
+            "Tamaño": grouped.count()["Nombre"],
+            "Nombre": grouped["Nombre"].apply(lambda x: ", ".join(x)),
+        }
+    )
+    return transformed
+
+
+def get_graph_groupBy(data):
+    # Agrupar los datos por área y contar cuántos investigadores hay en cada área
+    grouped_data = data.groupby("Área")["Nombre"].count().reset_index()
+
+    # Definir colores para cada área
+    colors = px.colors.qualitative.Plotly
+
+    # Crear el gráfico de barras con Plotly
+    fig = go.Figure(
+        [go.Bar(x=grouped_data["Área"], y=grouped_data["Nombre"], marker_color=colors)]
+    )
+    fig.update_layout(
+        title="Número de investigadores por área",
+        xaxis_title="Área",
+        yaxis_title="Número de investigadores",
+        font=dict(size=14),
+        margin=dict(l=0, r=0, t=30, b=0),
+        width=600,
+        height=400,
+    )
+
+    # Mostrar el gráfico
+    return dcc.Graph(id="graph_areas", figure=fig)

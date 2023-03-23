@@ -40,7 +40,6 @@ papers = get_papers_db()
 areas = get_area_db()
 
 
-
 server = app.server
 app.layout = dbc.Container(
     fluid=True,

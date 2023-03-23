@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from tools.components.maps import get_map
 from tools.components.table import get_table
-from tools.components.graph import get_graph
+from tools.components.graph import get_graph, get_graph_groupBy, transform_data
 from tools.components.tabs import get_filters, get_knowledge_filter
 from utils import (
     get_researchers_db,
@@ -21,6 +21,7 @@ import urllib
 import dash_bootstrap_components as dbc
 import asyncio
 import colorlover as cl
+
 external_stylesheets = [
     dbc.themes.COSMO,
 ]
@@ -29,7 +30,7 @@ app = dash.Dash(
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
     external_stylesheets=external_stylesheets,
 )
-app.title = "I2E Dashboard"
+app.title = "I2C Dashboard"
 app.config.suppress_callback_exceptions = True
 
 # Get the data
@@ -38,8 +39,9 @@ institutions = get_institutions_db()
 papers = get_papers_db()
 areas = get_area_db()
 
+
+
 server = app.server
-print("Server created")
 app.layout = dbc.Container(
     fluid=True,
     style={"backgroundColor": "#f5f7ff"},
@@ -51,8 +53,7 @@ app.layout = dbc.Container(
                         get_filters(institutions),
                         html.Br(),
                         get_knowledge_filter(areas),
-                                    html.Br(),
-
+                        html.Br(),
                     ],
                     lg=12,
                     md=12,
@@ -71,27 +72,31 @@ app.layout = dbc.Container(
                     md=6,
                     sm=12,
                 ),
-                dbc.Col(    
+                dbc.Col(
                     children=[
-                    
-                    dcc.Graph(
-                        id="map-graph",
-                        config=dict(displayModeBar=False, scrollZoom=True),
-                        animate=True,
-                        figure=get_map(researchers, institutions),
-                        animation_options=dict(
-                            frame=dict(duration=500, redraw=False),
-                            transition=dict(duration=500),
-                            easing="linear",
-                            fromcurrent=True,
-                            mode="immediate",
-                        ),
-                    ),
-                    html.Div(
-                                id='researcher-count', className="display-6 text-center", style={"font-size": "2rem", "font-weight": "bold", "color": "#000000", "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji"}
+                        dcc.Graph(
+                            id="map-graph",
+                            config=dict(displayModeBar=False, scrollZoom=True),
+                            animate=True,
+                            figure=get_map(researchers, institutions),
+                            animation_options=dict(
+                                frame=dict(duration=500, redraw=False),
+                                transition=dict(duration=500),
+                                easing="linear",
+                                fromcurrent=True,
+                                mode="immediate",
                             ),
-
-                    
+                        ),
+                        html.Div(
+                            id="researcher-count",
+                            className="display-6 text-center",
+                            style={
+                                "font-size": "2rem",
+                                "font-weight": "bold",
+                                "color": "#000000",
+                                "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
+                            },
+                        ),
                     ],
                     lg=8,
                     md=6,
@@ -114,6 +119,15 @@ app.layout = dbc.Container(
                         dcc.Download(id="download-dataframe-xlsx"),
                     ],
                     lg=9,
+                    md=6,
+                    sm=12,
+                ),
+                dbc.Col(
+                    children=[
+                        html.Br(),
+                        get_graph_groupBy(researchers),
+                    ],
+                    lg=3,
                     md=6,
                     sm=12,
                 ),
@@ -158,6 +172,7 @@ def update_map(institution):
         mapUpdate.update(layout=dict(uirevision=True))
     return mapUpdate
 
+
 @app.callback(
     Output("field", "options"),
     Input("area", "value"),
@@ -177,6 +192,7 @@ def update_field(areas):
             {"label": option["Nombre"], "value": option["Id"]} for option in options
         ]
 
+
 @app.callback(Output("discipline", "options"), Input("field", "value"))
 def update_discipline(fields):
     if fields is None or fields == "Todas":
@@ -191,6 +207,7 @@ def update_discipline(fields):
                 {"label": option["Nombre"], "value": option["Id"]} for option in options
             ]
 
+
 @app.callback(
     Output("researcher-table", "data"),
     Input("area", "value"),
@@ -203,35 +220,57 @@ def update_discipline(fields):
     Input("city", "value"),
     prevent_initial_call=True,
 )
-def update_table(area,area_label, field,field_label,discipline,discipline_label,institution,city):
+def update_table(
+    area,
+    area_label,
+    field,
+    field_label,
+    discipline,
+    discipline_label,
+    institution,
+    city,
+):
     area = [] if area is None or area == "Todas" else area
     field = [] if field is None or "Todas" in field else field
     discipline = [] if discipline is None or "Todas" in discipline else discipline
     institution = "" if institution is None or institution == "Todas" else institution
     city = "" if city is None or city == "Todas" else city
-    selected_areas = [option["label"] for option in area_label if option["value"] in area]
-    selected_fields = [option["label"] for option in field_label if option["value"] in field]
-    selected_disciplines = [option["label"] for option in discipline_label if option["value"] in discipline]
-    print(selected_areas)
-    print(selected_fields)
-    print(selected_disciplines)
-    print(institution)
-    print(city)
-    # Filter the data   
+    selected_areas = [
+        option["label"] for option in area_label if option["value"] in area
+    ]
+    selected_fields = [
+        option["label"] for option in field_label if option["value"] in field
+    ]
+    selected_disciplines = [
+        option["label"] for option in discipline_label if option["value"] in discipline
+    ]
+
+    # Filter the data
     filtered_researchers = researchers
     if len(area) > 0:
-        filtered_researchers = filtered_researchers[filtered_researchers["Área"].isin(selected_areas)]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Área"].isin(selected_areas)
+        ]
     if len(field) > 0:
-        filtered_researchers = filtered_researchers[filtered_researchers["Campos"].isin(selected_fields)]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Campos"].isin(selected_fields)
+        ]
     if len(discipline) > 0:
-        filtered_researchers = filtered_researchers[filtered_researchers["Disciplinas"].isin(selected_disciplines)]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Disciplinas"].isin(selected_disciplines)
+        ]
     if institution != "":
-        filtered_researchers = filtered_researchers[filtered_researchers["Institución"] == institution]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Institución"] == institution
+        ]
     if city != "":
-        filtered_researchers = filtered_researchers[filtered_researchers["Ciudad"] == city]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Ciudad"] == city
+        ]
 
     # Return the filtered data in the expected format
     return filtered_researchers.to_dict("records")
+
 
 @app.callback(
     Output("researcher-count", "children"),
@@ -245,41 +284,68 @@ def update_table(area,area_label, field,field_label,discipline,discipline_label,
     Input("city", "value"),
     prevent_initial_call=True,
 )
-def update_count(area,area_label, field,field_label,discipline,discipline_label,institution,city):
+def update_count(
+    area,
+    area_label,
+    field,
+    field_label,
+    discipline,
+    discipline_label,
+    institution,
+    city,
+):
     area = [] if area is None or area == "Todas" else area
     field = [] if field is None or "Todas" in field else field
     discipline = [] if discipline is None or "Todas" in discipline else discipline
     institution = "" if institution is None or institution == "Todas" else institution
-    selected_areas = [option["label"] for option in area_label if option["value"] in area]
-    selected_fields = [option["label"] for option in field_label if option["value"] in field]
-    selected_disciplines = [option["label"] for option in discipline_label if option["value"] in discipline]
+    selected_areas = [
+        option["label"] for option in area_label if option["value"] in area
+    ]
+    selected_fields = [
+        option["label"] for option in field_label if option["value"] in field
+    ]
+    selected_disciplines = [
+        option["label"] for option in discipline_label if option["value"] in discipline
+    ]
     city = "" if city is None or city == "Todas" else city
-    # Filter the data   
+    # Filter the data
     filtered_researchers = researchers
     if len(area) > 0:
-        filtered_researchers = filtered_researchers[filtered_researchers["Área"].isin(selected_areas)]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Área"].isin(selected_areas)
+        ]
     if len(field) > 0:
-        filtered_researchers = filtered_researchers[filtered_researchers["Campos"].isin(selected_fields)]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Campos"].isin(selected_fields)
+        ]
     if len(discipline) > 0:
-        filtered_researchers = filtered_researchers[filtered_researchers["Disciplinas"].isin(selected_disciplines)]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Disciplinas"].isin(selected_disciplines)
+        ]
     if institution != "":
-        filtered_researchers = filtered_researchers[filtered_researchers["Institución"] == institution]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Institución"] == institution
+        ]
     if city != "":
-        filtered_researchers = filtered_researchers[filtered_researchers["Ciudad"] == city]
+        filtered_researchers = filtered_researchers[
+            filtered_researchers["Ciudad"] == city
+        ]
 
     # Return the filtered data in the expected format
     return "Total de investigadores: " + str(len(filtered_researchers))
+
 
 @app.callback(
     Output("graph_papers", "figure"),
     Input("area", "value"),
     Input("field", "value"),
-    Input("discipline", "value"))
+    Input("discipline", "value"),
+)
 def update_graph_papers(area, field, discipline):
     area = [] if area is None or area == "Todas" else area
     field = [] if field is None or "Todas" in field else field
     discipline = [] if discipline is None or "Todas" in discipline else discipline
-    # Filter the data   
+    # Filter the data
     papers = get_papers_db()
     papers_df = pd.DataFrame(papers)
     if len(area) > 0:
@@ -314,7 +380,6 @@ def update_graph_papers(area, field, discipline):
     )
     return go.Figure(data=bar_data, layout=layout)
 
-    
 
 if __name__ == "__main__":
     app.run_server(host="0.0.0.0", port=8020, debug=True)

@@ -17,9 +17,7 @@ from utils import (
     get_field_db,
     get_discipline_db,
 )
-import urllib
 import dash_bootstrap_components as dbc
-import asyncio
 import colorlover as cl
 
 external_stylesheets = [
@@ -38,7 +36,7 @@ researchers = get_researchers_db()
 institutions = get_institutions_db()
 papers = get_papers_db()
 areas = get_area_db()
-
+mapChihuahua = get_map(researchers, institutions)
 
 server = app.server
 app.layout = dbc.Container(
@@ -75,16 +73,9 @@ app.layout = dbc.Container(
                     children=[
                         dcc.Graph(
                             id="map-graph",
-                            config=dict(displayModeBar=False, scrollZoom=True),
-                            animate=True,
-                            figure=get_map(researchers, institutions),
-                            animation_options=dict(
-                                frame=dict(duration=500, redraw=False),
-                                transition=dict(duration=500),
-                                easing="linear",
-                                fromcurrent=True,
-                                mode="immediate",
-                            ),
+                            figure=mapChihuahua,
+                            config={"displayModeBar": False, "scrollZoom": True},
+                            responsive=True,
                         ),
                         html.Div(
                             id="researcher-count",
@@ -149,27 +140,33 @@ def func(n_clicks, data):
 
 
 @app.callback(
-    Output("map-graph", "figure"),
+    [
+        Output("map-graph", "figure"),
+        Output("map-graph", "config"),
+    ],
     Input("institution", "value"),
     prevent_initial_call=True,
 )
 def update_map(institution):
     if institution is None or institution == "Todas":
         mapUpdate = get_map(researchers, institutions)
-        zoom = 5
     else:
         Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
         Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
-        zoom = 10
-        mapUpdate = get_map(researchers, institutions)
-        mapUpdate.update_layout(
-            mapbox_center={"lat": Lat, "lon": Long},
+        print(Lat, Long)
+        zoom = 8
+        mapUpdate = get_map(
+            researchers=researchers,
+            institutions=institutions,
+            center={"lat": Lat, "lon": Long},
+            zoom=zoom,
+        ).update_layout(
             mapbox_zoom=zoom,
+            mapbox_center={"lat": Lat, "lon": Long},
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            uirevision=True,  # Agregar esta línea
         )
-        mapUpdate.update(layout=dict(uirevision=True))
-    return mapUpdate
+    map_config = dict(scrollZoom=True)
+    return mapUpdate, map_config
 
 
 @app.callback(
@@ -371,11 +368,13 @@ def update_graph_papers(area, field, discipline):
 
     bar_data = [go.Bar(x=type_labels, y=counts, marker=dict(color=colors))]
     layout = go.Layout(
+        title="Publicaciones",
         xaxis=dict(title="Tipo"),
         yaxis=dict(title="Cantidad"),
         plot_bgcolor="rgba(0, 0, 0, 0)",
         paper_bgcolor="rgba(0, 0, 0, 0)",
-        font=dict(color="black"),
+        font=dict(color="black", size=12),
+        margin=dict(l=0, r=0, t=30, b=0),
     )
     return go.Figure(data=bar_data, layout=layout)
 

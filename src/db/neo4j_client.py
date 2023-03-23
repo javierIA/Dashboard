@@ -179,14 +179,16 @@ class Neo4jClient:
 OPTIONAL MATCH (i)-[]->(country:Country)
 OPTIONAL MATCH (i)-[]->(state:State)
 OPTIONAL MATCH (i)-[]->(city:City)
+OPTIONAL MATCH (r:Researcher)<-[:HAS]-(i)
 RETURN 
  i.name as name,
  i.type as type,
  country.name as country,
  state.name as state,
  city.name as city,
- i.location_point as location_point
-ORDER BY i.cvu"""
+ i.location_point as location_point,
+ COUNT(r) as num_researchers
+ORDER BY i.name"""
             )
             return [record_ async for record_ in result]
 

@@ -37,7 +37,8 @@ def get_graph(data):
         yaxis=dict(title="Cantidad"),
         plot_bgcolor="rgba(0, 0, 0, 0)",
         paper_bgcolor="rgba(0, 0, 0, 0)",
-        font=dict(color="black"),
+        font=dict(color="black", size=10),
+        margin=dict(l=0, r=0, t=30, b=0),
     )
 
     return dcc.Graph(id="graph_papers", figure={"data": bar_data, "layout": layout})
@@ -63,9 +64,12 @@ def get_graph_groupBy(data):
     grouped_data = data.groupby("Área")["Nombre"].count().reset_index()
 
     # Definir colores para cada área
-    colors = px.colors.qualitative.Plotly
-
-    # Crear el gráfico de barras con Plotly
+    colors = cl.scales["12"]["qual"]["Paired"]
+    colors = cl.interp(colors, len(grouped_data["Área"]))
+    grouped_data["Nombre"] = grouped_data["Nombre"].astype(str)
+    # extrer las siglas de cada área
+    grouped_data["Área"] = grouped_data["Área"].apply(lambda x: x.split(" ")[0])
+    # Crear el gráfico si color es negro tomar el color de la lista de colores
     fig = go.Figure(
         [go.Bar(x=grouped_data["Área"], y=grouped_data["Nombre"], marker_color=colors)]
     )
@@ -75,8 +79,6 @@ def get_graph_groupBy(data):
         yaxis_title="Número de investigadores",
         font=dict(size=14),
         margin=dict(l=0, r=0, t=30, b=0),
-        width=600,
-        height=400,
     )
 
     # Mostrar el gráfico

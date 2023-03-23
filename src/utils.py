@@ -142,7 +142,7 @@ def get_institutions_db():
     data = loop.run_until_complete(db.get_institutions())
     loop.close()
     df = pd.DataFrame(data)
-    df.columns = ["Nombre", "Tipo", "Pais", "Estado", "Ciudad", "Puntos"]
+    df.columns = ["Nombre", "Tipo", "Pais", "Estado", "Ciudad", "Puntos", "Registrados"]
     df[["Lat", "Long"]] = df["Puntos"].str.split(",", expand=True)
     df["Lat"] = pd.to_numeric(df["Lat"])
     df["Long"] = pd.to_numeric(df["Long"])

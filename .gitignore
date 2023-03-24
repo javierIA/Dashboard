@@ -13,3 +13,4 @@ neo4j/logs/
 /neo4j/data/databases/
 .env
 *.env
+docker-compose.override.yml

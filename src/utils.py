@@ -130,6 +130,26 @@ def get_papers_db():
     data = loop.run_until_complete(db.get_papers())
     loop.close()
     df = pd.DataFrame(data)
+    if df.empty:
+        df = pd.DataFrame(
+            columns=[
+                "Nombre",
+                "Tipo",
+                "Id",
+                "Area",
+                "Campo",
+                "Disciplina",
+                "Institución",
+                "Autor",
+            ]
+        )
+        df["Autor"] = "Javier"
+        df["Institución"] = "UTCJ"
+        df["Area"] = "Prueba"
+        df["Campo"] = "Campo"
+        df["Disciplina"] = "Disciplina"
+        df["Tipo"] = "Tipo"
+        return df
     df.columns = ["Nombre", "Tipo", "Id", "Area", "Campo", "Disciplina"]
     return df
 

@@ -380,4 +380,4 @@ def update_graph_papers(area, field, discipline):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port=8020, debug=True)
+    app.run_server(host="0.0.0.0", port=8020)

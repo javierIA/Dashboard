@@ -89,6 +89,7 @@ class Neo4jClient:
         async def work(tx):
             result = await tx.run(
                 """MATCH (r:Researcher)
+                    WHERE r.validated=true
                     OPTIONAL MATCH (r)-[]->(country:Country)
                     OPTIONAL MATCH (r)-[]->(state:State)
                     OPTIONAL MATCH (r)-[]->(city:City)

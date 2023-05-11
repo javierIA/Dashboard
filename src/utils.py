@@ -25,18 +25,32 @@ def count_investigation_by_searcher(ids):
 def covert_to_df():
     custom = get_dash()
     df = pd.DataFrame(custom)
-    df.columns = [
-        "Organization",
-        "Long",
-        "Lat",
-        "OrganizationType",
-        "Researcher",
-        "Surname",
-        "Id",
-        "Knowledge",
-        "KnowledgeType",
-        "City",
-    ]
+    if df.empty:
+        df = pd.DataFrame(columns = [
+            "Organization",
+            "Long",
+            "Lat",
+            "OrganizationType",
+            "Researcher",
+            "Surname",
+            "Id",
+            "Knowledge",
+            "KnowledgeType",
+            "City",
+        ])
+    else:
+        df.columns = [
+            "Organization",
+            "Long",
+            "Lat",
+            "OrganizationType",
+            "Researcher",
+            "Surname",
+            "Id",
+            "Knowledge",
+            "KnowledgeType",
+            "City",
+        ]
 
     df["KnowledgeDiscipline"] = False
     df["KnowledgeArea"] = False
@@ -100,22 +114,46 @@ def get_researchers_db():
     db = neo4j.Neo4jClient()
     custom = asyncio.run(db.get_researchers())
     df = pd.DataFrame(custom)
-    df.columns = [
-        "CVU",
-        "Nombre",
-        "Apellido",
-        "SNI",
-        "Id",
-        "País",
-        "Estado",
-        "Ciudad",
-        "Lat",
-        "Long",
-        "Área",
-        "Campos",
-        "Disciplinas",
-        "Institución",
-    ]
+    if df.empty:
+        df = pd.DataFrame(columns = [
+            "CVU",
+            "Nombre",
+            "Apellido",
+            "SNI",
+            "Id",
+            "País",
+            "Estado",
+            "Ciudad",
+            "Lat",
+            "Long",
+            "Área",
+            "Campos",
+            "Disciplinas",
+            "Institución",
+        ])
+        df["CVU"] = "1239717"
+        df["Nombre"] = "Alejandro"
+        df["Apellido"] = "Medina Reyes"
+        df["País"] = "México"
+        df["Estado"] = "Chihuahua"
+        df["Ciudad"] = "Juárez"
+    else:
+        df.columns = [
+            "CVU",
+            "Nombre",
+            "Apellido",
+            "SNI",
+            "Id",
+            "País",
+            "Estado",
+            "Ciudad",
+            "Lat",
+            "Long",
+            "Área",
+            "Campos",
+            "Disciplinas",
+            "Institución",
+        ]
     df["Área"] = df["Área"].apply(lambda x: ", ".join(x))
     df["Campos"] = df["Campos"].apply(lambda x: ", ".join(x))
     df["Disciplinas"] = df["Disciplinas"].apply(lambda x: ", ".join(x))
@@ -175,7 +213,7 @@ def get_institutions_db():
         )
         df["Lat"] = "31.72955655"
         df["Long"] = "-106.39595258178568"
-        df["Registrados"] = 33
+        df["Registrados"] = 0
         df["Pais"] = "México"
         df["Estado"] = "Chihuahua"
         df["Ciudad"] = "Juárez"

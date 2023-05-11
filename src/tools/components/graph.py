@@ -65,7 +65,7 @@ def get_graph_groupBy(data):
 
     # Definir colores para cada área
     colors = cl.scales["12"]["qual"]["Paired"]
-    colors = cl.interp(colors, len(grouped_data["Área"]))
+    colors = cl.interp(colors, max(1, len(grouped_data["Área"])))
     grouped_data["Nombre"] = grouped_data["Nombre"].astype(str)
     # extrer las siglas de cada área
     grouped_data["Área"] = grouped_data["Área"].apply(lambda x: x.split(" ")[0])

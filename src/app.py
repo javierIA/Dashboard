@@ -16,6 +16,8 @@ from utils import (
     get_area_db,
     get_field_db,
     get_discipline_db,
+    translate,
+    
 )
 import dash_bootstrap_components as dbc
 import colorlover as cl
@@ -31,15 +33,34 @@ app = dash.Dash(
 app.title = "I2C Dashboard"
 app.config.suppress_callback_exceptions = True
 
-# Get the data
+language = "es"
+#   Get the data
 researchers = get_researchers_db()
 institutions = get_institutions_db()
 papers = get_papers_db()
 areas = get_area_db()
 mapChihuahua = get_map(researchers, institutions)
 
+
 server = app.server
-app.layout = dbc.Container(
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content'),
+    dcc.Store(id='language-store')  # Almacena el idioma seleccionado
+])
+# Agrega el componente de almacenamiento a tu layout
+
+
+# Modifica tu callback para usar el estado del componente de almacenamiento
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')],
+              [State('language-store', 'data')])  # Recupera el idioma seleccionado
+def display_page(pathname, language):
+    if not language:
+        language = 'es'
+    
+    if pathname == '/':
+        return  dbc.Container(
     fluid=True,
     style={"backgroundColor": "#f5f7ff"},
     children=[
@@ -125,7 +146,95 @@ app.layout = dbc.Container(
         ),
     ],
 )
+    elif pathname == '/en':
+        return dbc.Container(
+    fluid=True,
+    style={"backgroundColor": "#f5f7ff"},
+    children=[
+        dbc.Row(
+            children=[
+                dbc.Col(
+                    children=[
+                        get_filters(institutions,pathname='/en'),
+                        html.Br(),
+                        get_knowledge_filter(areas,pathname='/en'),
+                        html.Br(),
+                    ],
+                    lg=12,
+                    md=12,
+                    sm=12,
+                ),
+            ],
+        ),
+        dbc.Row(
+            children=[
+                dbc.Col(
+                    children=[
+                        get_graph(papers,pathname='/en'),
+                        html.Br(),
+                    ],
+                    lg=4,
+                    md=6,
+                    sm=12,
+                ),
+                dbc.Col(
+                    children=[
+                        dcc.Graph(
+                            id="map-graph",
+                            figure=mapChihuahua,
+                            config={"displayModeBar": False, "scrollZoom": True},
+                            responsive=True,
+                        ),
+                        html.Div(
+                            id="researcher-count",
+                            className="display-6 text-center",
+                            style={
+                                "font-size": "2rem",
+                                "font-weight": "bold",
+                                "color": "#000000",
+                                "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
+                            },
+                        ),
+                    ],
+                    lg=8,
+                    md=6,
+                    sm=12,
+                ),
+            ],
+        ),
+        dbc.Row(
+            children=[
+                dbc.Col(
+                    children=[
+                        dbc.Label("Researchers"),
+                        get_table(df=researchers,pathname="/en"),
+                        html.Br(),
+                        dbc.Button(
+                            "Download Table",
+                            id="btn_xlsx",
+                            className="btn btn-primary btn-lg",
+                        ),
+                        dcc.Download(id="download-dataframe-xlsx"),
+                    ],
+                    lg=9,
+                    md=6,
+                    sm=12,
+                ),
+                dbc.Col(
+                    children=[
+                        html.Br(),
+                        get_graph_groupBy(data=researchers,pathname="/en"),
+                    ],
+                    lg=3,
+                    md=6,
+                    sm=12,
+                ),
+            ],
+        ),
+    ],
+)
 
+       
 
 # Define the callback function
 @app.callback(
@@ -138,36 +247,57 @@ def func(n_clicks, data):
     data = pd.DataFrame(data)
     return dcc.send_data_frame(data.to_excel, "Dash.xlsx")
 
-
 @app.callback(
     [
         Output("map-graph", "figure"),
         Output("map-graph", "config"),
     ],
-    Input("institution", "value"),
+    [
+        Input("institution", "value"),
+        Input('url', 'pathname')
+    ],
     prevent_initial_call=True,
 )
-def update_map(institution):
-    if institution is None or institution == "Todas":
-        mapUpdate = get_map(researchers, institutions)
+def update_map(institution, pathname):
+    if pathname == "/en":
+        if institution is None or institution == "All":
+            mapUpdate = get_map(researchers, institutions)
+        else:
+            Lat = institutions[institutions["Name"] == institution]["Lat"].values[0]
+            Long = institutions[institutions["Name"] == institution]["Long"].values[0]
+            print(Lat, Long)
+            zoom = 8
+            mapUpdate = get_map(
+                researchers=researchers,
+                institutions=institutions,
+                center={"lat": Lat, "lon": Long},
+                zoom=zoom,
+            ).update_layout(
+                mapbox_zoom=zoom,
+                mapbox_center={"lat": Lat, "lon": Long},
+                margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            )
+            return mapUpdate, map_config
     else:
-        Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
-        Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
-        print(Lat, Long)
-        zoom = 8
-        mapUpdate = get_map(
-            researchers=researchers,
-            institutions=institutions,
-            center={"lat": Lat, "lon": Long},
-            zoom=zoom,
-        ).update_layout(
-            mapbox_zoom=zoom,
-            mapbox_center={"lat": Lat, "lon": Long},
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        )
-    map_config = dict(scrollZoom=True)
-    return mapUpdate, map_config
-
+        if institution is None or institution == "Todas" or institution == "All":
+            mapUpdate = get_map(researchers, institutions)
+        else:
+            Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
+            Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
+            print(Lat, Long)
+            zoom = 8
+            mapUpdate = get_map(
+                researchers=researchers,
+                institutions=institutions,
+                center={"lat": Lat, "lon": Long},
+                zoom=zoom,
+            ).update_layout(
+                mapbox_zoom=zoom,
+                mapbox_center={"lat": Lat, "lon": Long},
+                margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            )
+        map_config = dict(scrollZoom=True)
+        return mapUpdate, map_config
 
 @app.callback(
     Output("field", "options"),
@@ -175,7 +305,7 @@ def update_map(institution):
     prevent_initial_call=True,
 )
 def update_field(areas):
-    if areas is None or areas == "Todas":
+    if areas is None or areas == "Todas" or areas == "All":
         return []
     else:
         fields = get_field_db()
@@ -191,7 +321,7 @@ def update_field(areas):
 
 @app.callback(Output("discipline", "options"), Input("field", "value"))
 def update_discipline(fields):
-    if fields is None or fields == "Todas":
+    if fields is None or fields == "Todas" or fields == "All":
         return []
     else:
         for field in fields:
@@ -226,11 +356,12 @@ def update_table(
     institution,
     city,
 ):
-    area = [] if area is None or area == "Todas" else area
-    field = [] if field is None or "Todas" in field else field
-    discipline = [] if discipline is None or "Todas" in discipline else discipline
-    institution = "" if institution is None or institution == "Todas" else institution
-    city = "" if city is None or city == "Todas" else city
+    area = [] if area is None or area == "Todas" or area == "All" else area
+    field = [] if field is None or ("Todas" in field or "All" in field) else field
+    discipline = [] if discipline is None or ("Todas" in discipline or "All" in discipline) else discipline
+    institution = "" if institution is None or (institution == "Todas" or institution == "All") else institution
+    city = "" if city is None or (city == "Todas" or city == "All") else city
+
     selected_areas = [
         option["label"] for option in area_label if option["value"] in area
     ]
@@ -268,16 +399,20 @@ def update_table(
     return filtered_researchers.to_dict("records")
 
 
+
 @app.callback(
     Output("researcher-count", "children"),
-    Input("area", "value"),
-    Input("area", "options"),
-    Input("field", "value"),
-    Input("field", "options"),
-    Input("discipline", "value"),
-    Input("discipline", "options"),
-    Input("institution", "value"),
-    Input("city", "value"),
+    [
+        Input("area", "value"),
+        Input("area", "options"),
+        Input("field", "value"),
+        Input("field", "options"),
+        Input("discipline", "value"),
+        Input("discipline", "options"),
+        Input("institution", "value"),
+        Input("city", "value"),
+        Input("url", "pathname"),
+    ],
     prevent_initial_call=True,
 )
 def update_count(
@@ -289,11 +424,13 @@ def update_count(
     discipline_label,
     institution,
     city,
+    pathname,
 ):
-    area = [] if area is None or area == "Todas" else area
-    field = [] if field is None or "Todas" in field else field
-    discipline = [] if discipline is None or "Todas" in discipline else discipline
-    institution = "" if institution is None or institution == "Todas" else institution
+    area = [] if area is None or ("Todas" in area or "All" in area) else area
+    field = [] if field is None or ("Todas" in field or "All" in field) else field
+    discipline = [] if discipline is None or ("Todas" in discipline or "All" in discipline) else discipline
+    institution = "" if institution is None or (institution == "Todas" or institution == "All") else institution
+
     selected_areas = [
         option["label"] for option in area_label if option["value"] in area
     ]
@@ -327,8 +464,11 @@ def update_count(
             filtered_researchers["Ciudad"] == city
         ]
 
-    # Return the filtered data in the expected format
-    return "Total de investigadores: " + str(len(filtered_researchers))
+    if pathname == "/en":
+        return translate("Total number of researchers", "en") + ": " + str(len(filtered_researchers))
+    else:
+        return translate("Total de investigadores", "es") + ": " + str(len(filtered_researchers))
+
 
 
 @app.callback(
@@ -336,12 +476,14 @@ def update_count(
     Input("area", "value"),
     Input("field", "value"),
     Input("discipline", "value"),
+    Input("url", "pathname"),
 )
-def update_graph_papers(area, field, discipline):
-    area = [] if area is None or area == "Todas" else area
-    field = [] if field is None or "Todas" in field else field
-    discipline = [] if discipline is None or "Todas" in discipline else discipline
-    # Filter the data
+def update_graph_papers(area, field, discipline,pathname):
+    area = [] if area is None or area == "Todas" or "All" else area
+    field = [] if field is None or "Todas" or "All" in field else field
+    discipline = [] if discipline is None or "Todas" or "All" in discipline else discipline
+
+    # # Filter the data
     papers = get_papers_db()
     papers_df = pd.DataFrame(papers)
     if len(area) > 0:
@@ -366,16 +508,35 @@ def update_graph_papers(area, field, discipline):
     colors = cl.scales["9"]["qual"]["Paired"]
     colors = cl.interp(colors, len(type_labels))
 
-    bar_data = [go.Bar(x=type_labels, y=counts, marker=dict(color=colors))]
-    layout = go.Layout(
-        title="Publicaciones",
-        xaxis=dict(title="Tipo"),
-        yaxis=dict(title="Cantidad"),
-        plot_bgcolor="rgba(0, 0, 0, 0)",
-        paper_bgcolor="rgba(0, 0, 0, 0)",
-        font=dict(color="black", size=12),
-        margin=dict(l=0, r=0, t=30, b=0),
-    )
+    if pathname == "/en":
+        type_labels = (
+            "Scientific Paper",
+            "Research Project",
+            "Research Group",
+            "Patent",
+        )
+
+        bar_data = [go.Bar(x=type_labels, y=counts, marker=dict(color=colors))]
+        layout = go.Layout(
+            title="Papers",
+            xaxis=dict(title="Type"),
+            yaxis=dict(title="Number of papers"),
+            plot_bgcolor="rgba(0, 0, 0, 0)",
+            paper_bgcolor="rgba(0, 0, 0, 0)",
+            font=dict(color="black", size=12),
+            margin=dict(l=0, r=0, t=30, b=0),
+        )
+    else:
+        bar_data = [go.Bar(x=type_labels, y=counts, marker=dict(color=colors))]
+        layout = go.Layout(
+            title="Publicaciones",
+            xaxis=dict(title="Tipo"),
+            yaxis=dict(title="Número de publicaciones"),
+            plot_bgcolor="rgba(0, 0, 0, 0)",
+            paper_bgcolor="rgba(0, 0, 0, 0)",
+            font=dict(color="black", size=12),
+            margin=dict(l=0, r=0, t=30, b=0),
+        )
     return go.Figure(data=bar_data, layout=layout)
 
 

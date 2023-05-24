@@ -264,3 +264,34 @@ def get_discipline_db():
     df.columns = ["Nombre", "Id", "Campo", "Area"]
 
     return df
+
+def get_translate():
+    return  {
+    'es': {
+        "Download Table": "Descargar tabla",
+        "Researchers": "Investigadores",
+        "Scientific Paper": "Artículo científico",
+        "Research Project": "Proyecto de investigación",
+        "Research Group": "Grupo de investigación",
+        "Patent": "Patente",
+        "Publications": "Publicaciones",
+        "Type": "Tipo",
+        "Quantity": "Cantidad",
+        "Total number of researchers": "Total de investigadores"
+    },
+    'en': {
+        "Descargar tabla": "Download Table",
+        "Investigadores": "Researchers",
+        "Artículo científico": "Scientific Paper",
+        "Proyecto de investigación": "Research Project",
+        "Grupo de investigación": "Research Group",
+        "Patente": "Patent",
+        "Publicaciones": "Publications",
+        "Tipo": "Type",
+        "Cantidad": "Quantity",
+        "Total de investigadores": "Total number of researchers"
+    }
+}
+
+def translate(text, lang):
+    return get_translate()[lang].get(text, text)

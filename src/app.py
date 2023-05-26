@@ -440,7 +440,7 @@ def update_count(
     selected_disciplines = [
         option["label"] for option in discipline_label if option["value"] in discipline
     ]
-    city = "" if city is None or city == "Todas" else city
+    city = "" if city is None or city == "Todas" or city=="All" else city
     # Filter the data
     filtered_researchers = researchers
     if len(area) > 0:

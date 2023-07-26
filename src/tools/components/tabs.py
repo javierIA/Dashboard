@@ -34,13 +34,13 @@ def get_filters(institutions, pathname="/es"):
         placeholder_city = "Select a city"
         label_institution = "Institution"
         placeholder_institution = "Select an institution"
-        value="All"
+        value = "All"
     else:
         label_city = "Ciudad"
         placeholder_city = "Selecciona una ciudad"
         label_institution = "Institución"
         placeholder_institution = "Selecciona una institución"
-        value="Todas"
+        value = "Todas"
     return dbc.Row(
         [
             dbc.Col(
@@ -105,7 +105,6 @@ def get_filters(institutions, pathname="/es"):
 
 def get_knowledge_filter(areas, pathname="/es"):
     areas = get_filterAreas(areas, pathname)
-
 
     if pathname == "/en":
         label_area = "Knowledge Area"

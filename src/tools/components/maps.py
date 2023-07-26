@@ -108,5 +108,4 @@ def get_map(
         )
     )
     fig.update_traces(cluster=dict(maxzoom=9, opacity=0.8, step=4))
-
     return fig

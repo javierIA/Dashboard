@@ -10,8 +10,8 @@ services:
       - ./src:/wd/src
     environment:
       - PORT=8080
-      - URL=bolt://10.210.20.51:30008
+      - URL=neo4j://10.210.20.50:30770
       - USERNAME=neo4j
       - PASSWORD=i2c_@2lletas_09!
-      
+
     command: gunicorn --workers=5 --threads=1 -b 0.0.0.0:8080 app:server

@@ -17,7 +17,6 @@ from utils import (
     get_field_db,
     get_discipline_db,
     translate,
-    
 )
 import dash_bootstrap_components as dbc
 import colorlover as cl
@@ -39,202 +38,214 @@ researchers = get_researchers_db()
 institutions = get_institutions_db()
 papers = get_papers_db()
 areas = get_area_db()
-mapChihuahua = get_map(researchers, institutions)
 
 
 server = app.server
-app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content'),
-    dcc.Store(id='language-store')  # Almacena el idioma seleccionado
-])
+app.layout = html.Div(
+    [
+        dcc.Location(id="url", refresh=False),
+        html.Div(id="page-content"),
+        dcc.Store(id="language-store"),  # Almacena el idioma seleccionado
+    ]
+)
 # Agrega el componente de almacenamiento a tu layout
 
 
 # Modifica tu callback para usar el estado del componente de almacenamiento
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')],
-              [State('language-store', 'data')])  # Recupera el idioma seleccionado
+@app.callback(
+    Output("page-content", "children"),
+    [Input("url", "pathname")],
+    [State("language-store", "data")],
+)  # Recupera el idioma seleccionado
 def display_page(pathname, language):
     if not language:
-        language = 'es'
-    
-    if pathname == '/':
-        return  dbc.Container(
-    fluid=True,
-    style={"backgroundColor": "#f5f7ff"},
-    children=[
-        dbc.Row(
-            children=[
-                dbc.Col(
-                    children=[
-                        get_filters(institutions),
-                        html.Br(),
-                        get_knowledge_filter(areas),
-                        html.Br(),
-                    ],
-                    lg=12,
-                    md=12,
-                    sm=12,
-                ),
-            ],
-        ),
-        dbc.Row(
-            children=[
-                dbc.Col(
-                    children=[
-                        get_graph(papers),
-                        html.Br(),
-                    ],
-                    lg=4,
-                    md=6,
-                    sm=12,
-                ),
-                dbc.Col(
-                    children=[
-                        dcc.Graph(
-                            id="map-graph",
-                            figure=mapChihuahua,
-                            config={"displayModeBar": False, "scrollZoom": True},
-                            responsive=True,
-                        ),
-                        html.Div(
-                            id="researcher-count",
-                            className="display-6 text-center",
-                            style={
-                                "font-size": "2rem",
-                                "font-weight": "bold",
-                                "color": "#000000",
-                                "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
-                            },
-                        ),
-                    ],
-                    lg=8,
-                    md=6,
-                    sm=12,
-                ),
-            ],
-        ),
-        dbc.Row(
-            children=[
-                dbc.Col(
-                    children=[
-                        dbc.Label("Investigadores"),
-                        get_table(researchers),
-                        html.Br(),
-                        dbc.Button(
-                            "Descargar tabla",
-                            id="btn_xlsx",
-                            className="btn btn-primary btn-lg",
-                        ),
-                        dcc.Download(id="download-dataframe-xlsx"),
-                    ],
-                    lg=9,
-                    md=6,
-                    sm=12,
-                ),
-                dbc.Col(
-                    children=[
-                        html.Br(),
-                        get_graph_groupBy(researchers),
-                    ],
-                    lg=3,
-                    md=6,
-                    sm=12,
-                ),
-            ],
-        ),
-    ],
-)
-    elif pathname == '/en':
-        return dbc.Container(
-    fluid=True,
-    style={"backgroundColor": "#f5f7ff"},
-    children=[
-        dbc.Row(
-            children=[
-                dbc.Col(
-                    children=[
-                        get_filters(institutions,pathname='/en'),
-                        html.Br(),
-                        get_knowledge_filter(areas,pathname='/en'),
-                        html.Br(),
-                    ],
-                    lg=12,
-                    md=12,
-                    sm=12,
-                ),
-            ],
-        ),
-        dbc.Row(
-            children=[
-                dbc.Col(
-                    children=[
-                        get_graph(papers,pathname='/en'),
-                        html.Br(),
-                    ],
-                    lg=4,
-                    md=6,
-                    sm=12,
-                ),
-                dbc.Col(
-                    children=[
-                        dcc.Graph(
-                            id="map-graph",
-                            figure=mapChihuahua,
-                            config={"displayModeBar": False, "scrollZoom": True},
-                            responsive=True,
-                        ),
-                        html.Div(
-                            id="researcher-count",
-                            className="display-6 text-center",
-                            style={
-                                "font-size": "2rem",
-                                "font-weight": "bold",
-                                "color": "#000000",
-                                "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
-                            },
-                        ),
-                    ],
-                    lg=8,
-                    md=6,
-                    sm=12,
-                ),
-            ],
-        ),
-        dbc.Row(
-            children=[
-                dbc.Col(
-                    children=[
-                        dbc.Label("Researchers"),
-                        get_table(df=researchers,pathname="/en"),
-                        html.Br(),
-                        dbc.Button(
-                            "Download Table",
-                            id="btn_xlsx",
-                            className="btn btn-primary btn-lg",
-                        ),
-                        dcc.Download(id="download-dataframe-xlsx"),
-                    ],
-                    lg=9,
-                    md=6,
-                    sm=12,
-                ),
-                dbc.Col(
-                    children=[
-                        html.Br(),
-                        get_graph_groupBy(data=researchers,pathname="/en"),
-                    ],
-                    lg=3,
-                    md=6,
-                    sm=12,
-                ),
-            ],
-        ),
-    ],
-)
+        language = "es"
 
-       
+    if pathname == "/":
+        return dbc.Container(
+            fluid=True,
+            style={"backgroundColor": "#f5f7ff"},
+            children=[
+                dbc.Row(
+                    children=[
+                        dbc.Col(
+                            children=[
+                                get_filters(institutions),
+                                html.Br(),
+                                get_knowledge_filter(areas),
+                                html.Br(),
+                            ],
+                            lg=12,
+                            md=12,
+                            sm=12,
+                        ),
+                    ],
+                ),
+                dbc.Row(
+                    children=[
+                        dbc.Col(
+                            children=[
+                                get_graph(papers),
+                                html.Br(),
+                            ],
+                            lg=4,
+                            md=6,
+                            sm=12,
+                        ),
+                        dbc.Col(
+                            children=[
+                                dcc.Graph(
+                                    id="map-graph",
+                                    config={
+                                        "displayModeBar": False,
+                                        "scrollZoom": True,
+                                        "watermark": True,
+                                    },
+                                    responsive=True,
+                                ),
+                                html.Div(
+                                    id="researcher-count",
+                                    className="display-6 text-center",
+                                    style={
+                                        "font-size": "2rem",
+                                        "font-weight": "bold",
+                                        "color": "#000000",
+                                        "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
+                                    },
+                                ),
+                            ],
+                            lg=8,
+                            md=6,
+                            sm=12,
+                        ),
+                    ],
+                ),
+                dbc.Row(
+                    children=[
+                        dbc.Col(
+                            children=[
+                                dbc.Label("Investigadores"),
+                                get_table(researchers),
+                                html.Br(),
+                                dbc.Button(
+                                    "Descargar tabla",
+                                    id="btn_xlsx",
+                                    className="btn btn-primary btn-lg",
+                                ),
+                                dcc.Download(id="download-dataframe-xlsx"),
+                            ],
+                            lg=9,
+                            md=6,
+                            sm=12,
+                        ),
+                        dbc.Col(
+                            children=[
+                                html.Br(),
+                                get_graph_groupBy(researchers),
+                            ],
+                            lg=3,
+                            md=6,
+                            sm=12,
+                        ),
+                    ],
+                ),
+            ],
+        )
+    elif pathname == "/en":
+        return dbc.Container(
+            fluid=True,
+            style={"backgroundColor": "#f5f7ff"},
+            children=[
+                dbc.Row(
+                    children=[
+                        dbc.Col(
+                            children=[
+                                get_filters(institutions, pathname="/en"),
+                                html.Br(),
+                                get_knowledge_filter(areas, pathname="/en"),
+                                html.Br(),
+                            ],
+                            lg=12,
+                            md=12,
+                            sm=12,
+                        ),
+                    ],
+                ),
+                dbc.Row(
+                    children=[
+                        dbc.Col(
+                            children=[
+                                get_graph(papers, pathname="/en"),
+                                html.Br(),
+                            ],
+                            lg=4,
+                            md=6,
+                            sm=12,
+                        ),
+                        dbc.Col(
+                            children=[
+                                dcc.Graph(
+                                    id="map-graph",
+                                    config={
+                                        "displayModeBar": False,
+                                        "scrollZoom": True,
+                                    },
+                                    responsive=True,
+                                    animate=True,
+                                    animation_options={
+                                        "frame": {"duration": 500, "redraw": True},
+                                        "transition": {"duration": 500},
+                                    },
+                                ),
+                                html.Div(
+                                    id="researcher-count",
+                                    className="display-6 text-center",
+                                    style={
+                                        "font-size": "2rem",
+                                        "font-weight": "bold",
+                                        "color": "#000000",
+                                        "font-family": "apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
+                                    },
+                                ),
+                            ],
+                            lg=8,
+                            md=6,
+                            sm=12,
+                        ),
+                    ],
+                ),
+                dbc.Row(
+                    children=[
+                        dbc.Col(
+                            children=[
+                                dbc.Label("Researchers"),
+                                get_table(df=researchers, pathname="/en"),
+                                html.Br(),
+                                dbc.Button(
+                                    "Download Table",
+                                    id="btn_xlsx",
+                                    className="btn btn-primary btn-lg",
+                                ),
+                                dcc.Download(id="download-dataframe-xlsx"),
+                            ],
+                            lg=9,
+                            md=6,
+                            sm=12,
+                        ),
+                        dbc.Col(
+                            children=[
+                                html.Br(),
+                                get_graph_groupBy(data=researchers, pathname="/en"),
+                            ],
+                            lg=3,
+                            md=6,
+                            sm=12,
+                        ),
+                    ],
+                ),
+            ],
+        )
+
 
 # Define the callback function
 @app.callback(
@@ -247,57 +258,35 @@ def func(n_clicks, data):
     data = pd.DataFrame(data)
     return dcc.send_data_frame(data.to_excel, "Dash.xlsx")
 
+
 @app.callback(
-    [
-        Output("map-graph", "figure"),
-        Output("map-graph", "config"),
-    ],
-    [
-        Input("institution", "value"),
-        Input('url', 'pathname')
-    ],
-    prevent_initial_call=True,
+    Output(component_id="map-graph", component_property="figure"),
+    Input("institution", "value"),
 )
-def update_map(institution, pathname):
-    if pathname == "/en":
-        if institution is None or institution == "All":
-            mapUpdate = get_map(researchers, institutions)
-        else:
-            Lat = institutions[institutions["Name"] == institution]["Lat"].values[0]
-            Long = institutions[institutions["Name"] == institution]["Long"].values[0]
-            print(Lat, Long)
-            zoom = 8
-            mapUpdate = get_map(
-                researchers=researchers,
-                institutions=institutions,
-                center={"lat": Lat, "lon": Long},
-                zoom=zoom,
-            ).update_layout(
-                mapbox_zoom=zoom,
-                mapbox_center={"lat": Lat, "lon": Long},
-                margin={"r": 0, "t": 0, "l": 0, "b": 0},
+def update_map(institution):
+    figure = get_map(
+        researchers,
+        institutions,
+    )
+
+    if institution and institution not in ["Todas", "All"]:
+        Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
+        Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
+        # // remove all traces
+
+        figure = go.Figure(
+            go.Scattermapbox(
+                lat=[Lat],
+                lon=[Long],
+                mode="markers",
+                marker=go.scattermapbox.Marker(size=14),
+                text=[institution],
+                hoverinfo="text",
             )
-            return mapUpdate, map_config
-    else:
-        if institution is None or institution == "Todas" or institution == "All":
-            mapUpdate = get_map(researchers, institutions)
-        else:
-            Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
-            Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
-            print(Lat, Long)
-            zoom = 8
-            mapUpdate = get_map(
-                researchers=researchers,
-                institutions=institutions,
-                center={"lat": Lat, "lon": Long},
-                zoom=zoom,
-            ).update_layout(
-                mapbox_zoom=zoom,
-                mapbox_center={"lat": Lat, "lon": Long},
-                margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            )
-        map_config = dict(scrollZoom=True)
-        return mapUpdate, map_config
+        )
+
+    return figure
+
 
 @app.callback(
     Output("field", "options"),
@@ -358,8 +347,16 @@ def update_table(
 ):
     area = [] if area is None or area == "Todas" or area == "All" else area
     field = [] if field is None or ("Todas" in field or "All" in field) else field
-    discipline = [] if discipline is None or ("Todas" in discipline or "All" in discipline) else discipline
-    institution = "" if institution is None or (institution == "Todas" or institution == "All") else institution
+    discipline = (
+        []
+        if discipline is None or ("Todas" in discipline or "All" in discipline)
+        else discipline
+    )
+    institution = (
+        ""
+        if institution is None or (institution == "Todas" or institution == "All")
+        else institution
+    )
     city = "" if city is None or (city == "Todas" or city == "All") else city
 
     selected_areas = [
@@ -399,7 +396,6 @@ def update_table(
     return filtered_researchers.to_dict("records")
 
 
-
 @app.callback(
     Output("researcher-count", "children"),
     [
@@ -428,8 +424,16 @@ def update_count(
 ):
     area = [] if area is None or ("Todas" in area or "All" in area) else area
     field = [] if field is None or ("Todas" in field or "All" in field) else field
-    discipline = [] if discipline is None or ("Todas" in discipline or "All" in discipline) else discipline
-    institution = "" if institution is None or (institution == "Todas" or institution == "All") else institution
+    discipline = (
+        []
+        if discipline is None or ("Todas" in discipline or "All" in discipline)
+        else discipline
+    )
+    institution = (
+        ""
+        if institution is None or (institution == "Todas" or institution == "All")
+        else institution
+    )
 
     selected_areas = [
         option["label"] for option in area_label if option["value"] in area
@@ -440,7 +444,7 @@ def update_count(
     selected_disciplines = [
         option["label"] for option in discipline_label if option["value"] in discipline
     ]
-    city = "" if city is None or city == "Todas" or city=="All" else city
+    city = "" if city is None or city == "Todas" or city == "All" else city
     # Filter the data
     filtered_researchers = researchers
     if len(area) > 0:
@@ -465,10 +469,17 @@ def update_count(
         ]
 
     if pathname == "/en":
-        return translate("Total number of researchers", "en") + ": " + str(len(filtered_researchers))
+        return (
+            translate("Total number of researchers", "en")
+            + ": "
+            + str(len(filtered_researchers))
+        )
     else:
-        return translate("Total de investigadores", "es") + ": " + str(len(filtered_researchers))
-
+        return (
+            translate("Total de investigadores", "es")
+            + ": "
+            + str(len(filtered_researchers))
+        )
 
 
 @app.callback(
@@ -478,14 +489,20 @@ def update_count(
     Input("discipline", "value"),
     Input("url", "pathname"),
 )
-def update_graph_papers(area, field, discipline,pathname):
-    area = [] if area is None or area == "Todas" or "All" else area
-    field = [] if field is None or "Todas" or "All" in field else field
-    discipline = [] if discipline is None or "Todas" or "All" in discipline else discipline
+def update_graph_papers(area, field, discipline, pathname):
+    area = [] if area is None or area == "Todas" or area == "All" else area
+    field = [] if field is None or field == "Todas" or field == "All" else field
+    discipline = (
+        []
+        if discipline is None or discipline == "Todas" or discipline == "All"
+        else discipline
+    )
 
-    # # Filter the data
+    print(area, field, discipline)
+    # sacar elemnto de la lista de areas
+
     papers = get_papers_db()
-    papers_df = pd.DataFrame(papers)
+    papers_df = papers
     if len(area) > 0:
         papers_df = papers_df[papers_df["Area"].isin(area)]
     if len(field) > 0:
@@ -504,10 +521,11 @@ def update_graph_papers(area, field, discipline,pathname):
         "Grupo de investigación",
         "Patente",
     )
+
     counts = papers_df.groupby("Tipo").size().reindex(type_count_map.keys()).tolist()
     colors = cl.scales["9"]["qual"]["Paired"]
     colors = cl.interp(colors, len(type_labels))
-
+    print(counts)
     if pathname == "/en":
         type_labels = (
             "Scientific Paper",
@@ -541,4 +559,4 @@ def update_graph_papers(area, field, discipline,pathname):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port=8020)
+    app.run_server(host="0.0.0.0", port=8020, debug=True)

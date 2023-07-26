@@ -2,7 +2,7 @@ def Area_Query():
     # convert to string
     qry = """
        MATCH (area:KnowledgeArea)
-RETURN 
+        RETURN 
  area.description as name,
  area.identifier as identifier
     """

@@ -1,111 +1,158 @@
+import dash_leaflet as dl
+import dash_leaflet.express as dlx
+from dash import Dash, html
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-import json
-import pandas as pd
-from pathlib import Path
+from dash_extensions.javascript import Namespace
 
 
-def get_map(
-    researchers, institutions, zoom=6, center={"lat": 28.635308, "lon": -106.088747}
-):
+def prepare_data(researchers, institutions):
+    researchers["Tipo"] = "Investigadores"
+    institutions["Tipo"] = "Institución"
     data = pd.concat([researchers, institutions], sort=False).reset_index(drop=True)
-    data["Tipo"] = data["CVU"].apply(
-        lambda x: "Investigadores" if isinstance(x, str) else "Institución"
-    )
+    data["tooltip"] = data["Nombre"] + " (" + data["Tipo"] + ")"
     records_count = (
         data.groupby(["Lat", "Long"]).size().reset_index(name="Num_registros")
     )
     data = pd.merge(data, records_count, on=["Lat", "Long"])
-    data["Institución"] = data["Institución"].apply(
-        lambda x: x.split(",") if isinstance(x, str) else x
-    )
+    return data
 
-    # Then, explode the 'Institución' field to create a new row for each institution
-    data = data.explode("Institución").reset_index(drop=True)
-    statejson = Path(__file__).parent.parent.parent.joinpath("assets", "chihuahua.json")
 
-    with open(statejson, encoding="utf8") as f:
-        provinces_map = json.load(f)
-    px.set_mapbox_access_token(
-        "pk.eyJ1IjoiamF2aWVmbG84OCIsImEiOiJjbGNwdmk0bmQ0bHBsM3FwNDF5Z2hxdHo3In0.WWUNSAWH-v4mgpBAlFFR5A"
+def clean_data(data, default_lat=28.635308, default_lon=-106.088747):
+    data["Lat"] = pd.to_numeric(data["Lat"], errors="coerce")
+    data["Long"] = pd.to_numeric(data["Long"], errors="coerce")
+    data["tooltip"] = (
+        data["Nombre"]
+        + " ("
+        + data["Tipo"]
+        + ") - "
+        + data["Num_registros"].astype(str)
+        + " registros"
     )
-    mapbox_access_token = "pk.eyJ1IjoiamF2aWVmbG84OCIsImEiOiJjbGNwdmk0bmQ0bHBsM3FwNDF5Z2hxdHo3In0.WWUNSAWH-v4mgpBAlFFR5A"
-    fig = px.scatter_mapbox(
-        data,
-        lat="Lat",
-        lon="Long",
-        hover_name="Nombre",
-        hover_data=["Institución"],
-        color="Tipo",
-        color_discrete_map={
-            "Investigadores": "rgb(255,92,147)",
-            "Institución": "rgb(52, 207, 93)",
-        },
-        zoom=5,
-        height=600,
-        mapbox_style="carto-positron",
-        center={"lat": 28.635308, "lon": -106.088875},
-        opacity=0.7,
-        labels={"Tipo": "Tipo de entidad"},
-    )
+    data = data.dropna(subset=["Lat", "Long"])
+    data["Ciudad"] = data["Ciudad"].fillna("Desconocido")
+    data["Lat"].fillna(default_lat, inplace=True)
+    data["Long"].fillna(default_lon, inplace=True)
+    return data
 
-    fig.update_layout(
-        showlegend=False,
-        mapbox=dict(
-            accesstoken=mapbox_access_token,
-            bearing=-3,
-            center=center,
-            zoom=zoom,
-            pitch=20,
-            layers=[
-                dict(
-                    sourcetype="geojson",
-                    source=provinces_map,
-                    type="fill",
-                    color="rgba(100,108,255, 0.4)",
-                    below="traces",
-                )
-            ],
-        ),
-        margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        mapbox_bounds={"west": -180, "east": -50, "south": 20, "north": 90},
-    )
 
-    fig.add_trace(
-        go.Scattermapbox(
-            lat=data["Lat"],
-            lon=data["Long"],
-            hoverinfo="text",
-            hoverlabel=dict(
-                bgcolor="white", bordercolor="black", font=dict(color="black", size=20)
-            ),
-            hovertemplate="<b>%{hovertext}</b> - <i> Registros : %{customdata}</i>",
-            customdata=data.apply(
-                lambda row: row["Registrados"]
-                if row["Tipo"] == "Institución"
-                else row["Num_registros"],
-                axis=1,
-            ),
-            hovertext=data.apply(
-                lambda row: row["Nombre"]
-                if row["Tipo"] == "Institución"
-                else row["Tipo"],
-                axis=1,
-            ),
-            mode="markers",
-            marker=go.scattermapbox.Marker(
-                size=25,
-                color=data["Tipo"].apply(
-                    lambda x: "rgb(255,92,147)"
-                    if x == "Investigadores"
-                    else "rgb(52, 207, 93)"
-                ),
-                opacity=0.7,
-                symbol="circle",
-            ),
-            showlegend=False,
+def get_grouped_data(data):
+    return (
+        data.groupby("Ciudad")
+        .agg(
+            Num_registros=pd.NamedAgg(column="Num_registros", aggfunc="sum"),
+            avg_lat=pd.NamedAgg(column="Lat", aggfunc="mean"),
+            avg_lon=pd.NamedAgg(column="Long", aggfunc="mean"),
         )
+        .reset_index()
     )
-    fig.update_traces(cluster=dict(maxzoom=9, opacity=0.8, step=4))
-    return fig
+
+
+def get_info():
+    return [
+        html.H4("Information"),
+        html.P("This map visualizes the locations of researchers and institutions."),
+    ]
+
+
+def get_map(researchers, institutions, zoom=6, center=[28.635308, -106.088747]):
+    attribution = "IA.CENTER 2023"
+    colorscale = ["red", "yellow", "green", "blue", "purple"]
+    color_prop = "Num_registros"
+    ns = Namespace("myNamespace", "mySubNamespace")
+
+    data = prepare_data(researchers, institutions)
+    vmax = data["Num_registros"].max()
+    data = clean_data(data)
+    grouped = get_grouped_data(data)
+    minicharts = []
+    for index, row in grouped.iterrows():
+        # The pie chart will have two slices: one representing Num_registros, and the other slice representing the maximum value minus Num_registros.
+        chart_data = [row["Num_registros"], vmax - row["Num_registros"]]
+
+        popup_content = f"Ciudad: {row['Ciudad']}, Records: {row['Num_registros']}"
+        popup = dl.Popup(children=popup_content)
+
+        minichart = dl.LayerGroup(
+            children=[
+                dl.Minichart(
+                    lat=row["avg_lat"], lon=row["avg_lon"], type="pie", data=chart_data
+                ),
+                popup,
+            ]
+        )
+        minicharts.append(minichart)
+    dicts = data[
+        ["Lat", "Long", "Nombre", "Num_registros", "tooltip", "Ciudad", "Tipo"]
+    ].to_dict("rows")
+
+    geojson = dlx.dicts_to_geojson(dicts, lat="Lat", lon="Long")
+    geobuf = dlx.geojson_to_geobuf(geojson)
+
+    # Lógica de renderización
+    colorbar = dl.Colorbar(
+        colorscale=colorscale, width=20, height=150, min=0, max=vmax, unit="registros"
+    )
+    chihuahua = dl.GeoJSON(
+        url="/assets/chihuahua.json",
+        id="chihuahua",
+        options=dict(
+            style=dict(
+                color="rgba(100,108,255, 0.6)",
+                options=dict(
+                    fillColor="rgba(100,108,255, 0.4)",
+                    fillOpacity=0.7,
+                    weight=10,
+                    opacity=0.7,
+                ),
+                weight=2,  # Grosor del borde
+                opacity=0.5,
+                # Opacidad del borde
+            )
+        ),
+    )
+
+    geojson = dl.GeoJSON(
+        data=geobuf,
+        id="geojson",
+        zoomToBounds=True,
+        format="geobuf",
+        cluster=True,
+        zoomToBoundsOnClick=True,
+        superClusterOptions=dict(radius=20),
+        hideout=dict(
+            colorProp=color_prop,
+            circleOptions=dict(fillOpacity=1, stroke=False, radius=5),
+            min=0,
+            max=vmax,
+            colorscale=colorscale,
+        ),
+        # Use the namespace here
+    )
+    info = html.Div(
+        children=get_info(),
+        id="info",
+        className="info",
+        style={
+            "position": "absolute",
+            "top": "10px",
+            "right": "10px",
+            "z-index": "1000",
+        },
+    )
+    return dl.Map(
+        children=[
+            dl.TileLayer(
+                url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+                maxZoom=20,
+                attribution=attribution,
+            ),
+            geojson,
+            chihuahua,
+            colorbar,
+            info,
+            dl.LocateControl(options={"locateOptions": {"enableHighAccuracy": True}}),
+        ],
+        center=center,
+        zoom=zoom,
+        style={"width": "100%", "height": "70vh"},
+    )

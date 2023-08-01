@@ -1,4 +1,3 @@
-import base64
 import dash
 from dash.dependencies import Input, Output, State
 from dash import html
@@ -24,14 +23,18 @@ import colorlover as cl
 external_stylesheets = [
     dbc.themes.COSMO,
 ]
+
+chroma = "https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"  # js lib used for colors
 app = dash.Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
     external_stylesheets=external_stylesheets,
+    external_scripts=[chroma],
 )
 app.title = "I2C Dashboard"
 app.config.suppress_callback_exceptions = True
-
+app.scripts.config.serve_locally = True
+app.scripts.append_script({"external_url": chroma})
 language = "es"
 #   Get the data
 researchers = get_researchers_db()
@@ -94,14 +97,17 @@ def display_page(pathname, language):
                         ),
                         dbc.Col(
                             children=[
-                                dcc.Graph(
+                                html.Div(
                                     id="map-graph",
-                                    config={
-                                        "displayModeBar": False,
-                                        "scrollZoom": True,
-                                        "watermark": True,
+                                    className="display-6 text-center",
+                                    children=[
+                                        get_map(researchers, institutions),
+                                    ],
+                                    style={
+                                        "font-size": "2rem",
+                                        "font-weight": "bold",
+                                        "color": "#000000",
                                     },
-                                    responsive=True,
                                 ),
                                 html.Div(
                                     id="researcher-count",
@@ -184,17 +190,16 @@ def display_page(pathname, language):
                         ),
                         dbc.Col(
                             children=[
-                                dcc.Graph(
+                                html.Div(
                                     id="map-graph",
-                                    config={
-                                        "displayModeBar": False,
-                                        "scrollZoom": True,
-                                    },
-                                    responsive=True,
-                                    animate=True,
-                                    animation_options={
-                                        "frame": {"duration": 500, "redraw": True},
-                                        "transition": {"duration": 500},
+                                    className="display-6 text-center",
+                                    children=[
+                                        get_map(researchers, institutions),
+                                    ],
+                                    style={
+                                        "font-size": "2rem",
+                                        "font-weight": "bold",
+                                        "color": "#000000",
                                     },
                                 ),
                                 html.Div(
@@ -260,30 +265,26 @@ def func(n_clicks, data):
 
 
 @app.callback(
-    Output(component_id="map-graph", component_property="figure"),
+    Output("map-graph", "children"),
     Input("institution", "value"),
 )
 def update_map(institution):
-    figure = get_map(
-        researchers,
-        institutions,
-    )
-
     if institution and institution not in ["Todas", "All"]:
         Lat = institutions[institutions["Nombre"] == institution]["Lat"].values[0]
         Long = institutions[institutions["Nombre"] == institution]["Long"].values[0]
-        # // remove all traces
-
-        figure = go.Figure(
-            go.Scattermapbox(
-                lat=[Lat],
-                lon=[Long],
-                mode="markers",
-                marker=go.scattermapbox.Marker(size=14),
-                text=[institution],
-                hoverinfo="text",
-            )
+        # convert to float
+        Lat = float(Lat)
+        Long = float(Long)
+        zoom = 12
+        figure = get_map(
+            researchers=researchers,
+            institutions=institutions,
+            zoom=zoom,
+            center=[Lat, Long],
         )
+
+    else:
+        figure = get_map(researchers, institutions)
 
     return figure
 

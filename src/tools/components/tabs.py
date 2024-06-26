@@ -29,7 +29,7 @@ def get_filters(institutions):
         [
             dbc.Col(
                 [
-                    dbc.Label("Ciudad", style={"font-weight": "bold"}),
+                    dbc.Label("Ciudad", style={"font-weight": "bold", "margin": "5px"}),
                     dcc.Dropdown(
                         id="city",
                         options=city,
@@ -41,6 +41,7 @@ def get_filters(institutions):
                             "font-size": "16px",
                             "height": "38px",
                             "padding": "6px 12px",
+                            "margin" : "0px 0px 15px 0px", 
                             "border": "1px solid #ddd",
                             "border-radius": "4px",
                             "box-shadow": "inset 0px 1px 1px rgba(0, 0, 0, 0.075)",
@@ -69,6 +70,8 @@ def get_filters(institutions):
                             "font-size": "16px",
                             "height": "38px",
                             "padding": "6px 12px",
+                            "margin" : "0px 0px 15px 0px", 
+
                             "border": "1px solid #ddd",
                             "border-radius": "4px",
                             "box-shadow": "inset 0px 1px 1px rgba(0, 0, 0, 0.075)",
@@ -107,6 +110,7 @@ def get_knowledge_filter(areas):
                             "font-size": "16px",
                             "height": "38px",
                             "padding": "6px 12px",
+                            "margin" : "0px 0px 15px 0px", 
                             "border": "1px solid #ddd",
                             "border-radius": "4px",
                             "box-shadow": "inset 0px 1px 1px rgba(0, 0, 0, 0.075)",
@@ -114,6 +118,12 @@ def get_knowledge_filter(areas):
                         },
                     ),
                 ],
+                width={"size": 4},
+                xs={"size": 12},
+                sm={"size": 12},
+                md={"size": 4},
+                lg={"size": 4},
+                xl={"size": 4},
             ),
             dbc.Col(
                 [
@@ -131,6 +141,8 @@ def get_knowledge_filter(areas):
                             "font-size": "16px",
                             "height": "38px",
                             "padding": "6px 12px",
+                            "margin" : "0px 0px 15px 0px", 
+
                             "border": "1px solid #ddd",
                             "border-radius": "4px",
                             "box-shadow": "inset 0px 1px 1px rgba(0, 0, 0, 0.075)",
@@ -138,6 +150,12 @@ def get_knowledge_filter(areas):
                         },
                     ),
                 ],
+                width={"size": 4},
+                xs={"size": 12},
+                sm={"size": 12},
+                md={"size": 4},
+                lg={"size": 4},
+                xl={"size": 4},
             ),
             dbc.Col(
                 [
@@ -154,6 +172,8 @@ def get_knowledge_filter(areas):
                             "font-size": "16px",
                             "height": "38px",
                             "padding": "6px 12px",
+                            "margin" : "0px 0px 15px 0px", 
+
                             "border": "1px solid #ddd",
                             "border-radius": "4px",
                             "box-shadow": "inset 0px 1px 1px rgba(0, 0, 0, 0.075)",

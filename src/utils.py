@@ -26,18 +26,20 @@ def covert_to_df():
     custom = get_dash()
     df = pd.DataFrame(custom)
     if df.empty:
-        df = pd.DataFrame(columns = [
-            "Organization",
-            "Long",
-            "Lat",
-            "OrganizationType",
-            "Researcher",
-            "Surname",
-            "Id",
-            "Knowledge",
-            "KnowledgeType",
-            "City",
-        ])
+        df = pd.DataFrame(
+            columns=[
+                "Organization",
+                "Long",
+                "Lat",
+                "OrganizationType",
+                "Researcher",
+                "Surname",
+                "Id",
+                "Knowledge",
+                "KnowledgeType",
+                "City",
+            ]
+        )
     else:
         df.columns = [
             "Organization",
@@ -115,22 +117,24 @@ def get_researchers_db():
     custom = asyncio.run(db.get_researchers())
     df = pd.DataFrame(custom)
     if df.empty:
-        df = pd.DataFrame(columns = [
-            "CVU",
-            "Nombre",
-            "Apellido",
-            "SNI",
-            "Id",
-            "País",
-            "Estado",
-            "Ciudad",
-            "Lat",
-            "Long",
-            "Área",
-            "Campos",
-            "Disciplinas",
-            "Institución",
-        ])
+        df = pd.DataFrame(
+            columns=[
+                "CVU",
+                "Nombre",
+                "Apellido",
+                "SNI",
+                "Id",
+                "País",
+                "Estado",
+                "Ciudad",
+                "Lat",
+                "Long",
+                "Área",
+                "Campos",
+                "Disciplinas",
+                "Institución",
+            ]
+        )
         df["CVU"] = "1239717"
         df["Nombre"] = "Alejandro"
         df["Apellido"] = "Medina Reyes"
@@ -181,12 +185,6 @@ def get_papers_db():
                 "Autor",
             ]
         )
-        df["Autor"] = "Javier"
-        df["Institución"] = "UTCJ"
-        df["Area"] = "Prueba"
-        df["Campo"] = "Campo"
-        df["Disciplina"] = "Disciplina"
-        df["Tipo"] = "Tipo"
         return df
     df.columns = ["Nombre", "Tipo", "Id", "Area", "Campo", "Disciplina"]
     return df
@@ -265,33 +263,35 @@ def get_discipline_db():
 
     return df
 
+
 def get_translate():
-    return  {
-    'es': {
-        "Download Table": "Descargar tabla",
-        "Researchers": "Investigadores",
-        "Scientific Paper": "Artículo científico",
-        "Research Project": "Proyecto de investigación",
-        "Research Group": "Grupo de investigación",
-        "Patent": "Patente",
-        "Publications": "Publicaciones",
-        "Type": "Tipo",
-        "Quantity": "Cantidad",
-        "Total number of researchers": "Total de investigadores"
-    },
-    'en': {
-        "Descargar tabla": "Download Table",
-        "Investigadores": "Researchers",
-        "Artículo científico": "Scientific Paper",
-        "Proyecto de investigación": "Research Project",
-        "Grupo de investigación": "Research Group",
-        "Patente": "Patent",
-        "Publicaciones": "Publications",
-        "Tipo": "Type",
-        "Cantidad": "Quantity",
-        "Total de investigadores": "Total number of researchers"
+    return {
+        "es": {
+            "Download Table": "Descargar tabla",
+            "Researchers": "Investigadores",
+            "Scientific Paper": "Artículo científico",
+            "Research Project": "Proyecto de investigación",
+            "Research Group": "Grupo de investigación",
+            "Patent": "Patente",
+            "Publications": "Publicaciones",
+            "Type": "Tipo",
+            "Quantity": "Cantidad",
+            "Total number of researchers": "Total de investigadores",
+        },
+        "en": {
+            "Descargar tabla": "Download Table",
+            "Investigadores": "Researchers",
+            "Artículo científico": "Scientific Paper",
+            "Proyecto de investigación": "Research Project",
+            "Grupo de investigación": "Research Group",
+            "Patente": "Patent",
+            "Publicaciones": "Publications",
+            "Tipo": "Type",
+            "Cantidad": "Quantity",
+            "Total de investigadores": "Total number of researchers",
+        },
     }
-}
+
 
 def translate(text, lang):
     return get_translate()[lang].get(text, text)

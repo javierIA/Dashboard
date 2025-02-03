@@ -61,6 +61,11 @@ app.layout = html.Div(
     [State("language-store", "data")],
 )  # Recupera el idioma seleccionado
 def display_page(pathname, language):
+    researchers = get_researchers_db()
+    institutions = get_institutions_db()
+    papers = get_papers_db()
+    areas = get_area_db()
+
     if not language:
         language = "es"
 

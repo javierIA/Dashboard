@@ -49,8 +49,14 @@ def get_grouped_data(data):
 
 def get_info():
     return [
-        html.H4("Information"),
-        html.P("This map visualizes the locations of researchers and institutions."),
+html.H5(["Hecho por:", html.A(  # Wrap the image in an <a> tag
+    html.Img(
+        src="https://www.ia.center/static/img/logo/loder.1186288540be.png",
+        style={"height": "25px", "margin-left": "10px"}
+    ),
+    href="https://www.ia.center",  # Set the link destination
+    target="_blank"  # Open the link in a new tab (optional but recommended)
+)])
     ]
 
 

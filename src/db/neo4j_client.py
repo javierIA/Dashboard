@@ -100,7 +100,7 @@ class Neo4jClient:
                     RETURN 
                     r.cvu as cvu,
                     r.name as name,
-                    r.first_surname + '' + r.second_surname as surname,
+                    r.first_surname + ' ' + r.second_surname as surname,
                     r.sni_level as sni_level,
                     r.identifier as identifier,
                     country.name as country,

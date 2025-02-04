@@ -1,4 +1,4 @@
-FROM python:3.8.6-slim-buster
+FROM python:3.8.6-buster
 
 LABEL maintainer "Javier Flo, javier.flores@ia.center"
 
@@ -16,6 +16,8 @@ COPY /src /usr/src/app/
 # Changing to non-root user
 RUN useradd -m appUser
 USER appUser
+
+ENV PYTHONUNBUFFERED 1
 
 # Run locally on port 8080
 CMD gunicorn --bind 0.0.0.0:8080 app:server

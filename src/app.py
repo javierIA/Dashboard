@@ -1,4 +1,5 @@
 import dash
+import time
 from dash.dependencies import Input, Output, State
 from dash import html
 from dash import dcc
@@ -33,7 +34,7 @@ app = dash.Dash(
 )
 app.title = "I2C Dashboard"
 app.config.suppress_callback_exceptions = True
-app.scripts.config.serve_locally = True
+#app.scripts.config.serve_locally = True
 app.scripts.append_script({"external_url": chroma})
 language = "es"
 #   Get the data
@@ -41,7 +42,7 @@ researchers = get_researchers_db()
 institutions = get_institutions_db()
 papers = get_papers_db()
 areas = get_area_db()
-
+last_load_time = time.time()
 
 server = app.server
 app.layout = html.Div(
@@ -61,10 +62,22 @@ app.layout = html.Div(
     [State("language-store", "data")],
 )  # Recupera el idioma seleccionado
 def display_page(pathname, language):
-    researchers = get_researchers_db()
-    institutions = get_institutions_db()
-    papers = get_papers_db()
-    areas = get_area_db()
+    print("display_page callback")
+    global last_load_time
+    global researchers
+    global institutions
+    global papers
+    global areas
+    current_time = time.time()
+    elapsed = current_time - last_load_time
+    # Check if more than 10 minutes (600 seconds) have passed
+    if elapsed >= 600:
+        researchers = get_researchers_db()
+        institutions = get_institutions_db()
+        papers = get_papers_db()
+        areas = get_area_db()
+        last_load_time = current_time
+        print("reload data 10 min")
 
     if not language:
         language = "es"
